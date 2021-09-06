@@ -16,5 +16,7 @@ public class ClientPlayNetworkHandlerMixin {
         System.out.println("Nether Spawn Any%: Loaded first creative hotbar");
         NetherSpawnAnyPercent.goNether();
         System.out.println("Nether Spawn Any%: Sent to nether");
+        NetherSpawnAnyPercent.setHud();
+        System.out.println("Nether Spawn Any%: Opened f3 menu");
     }
 }

@@ -2,6 +2,7 @@ package me.logwet.netherspawn_any_percent;
 
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.HotbarStorageEntry;
 import net.minecraft.entity.player.PlayerInventory;
@@ -76,6 +77,17 @@ public class NetherSpawnAnyPercent implements ModInitializer {
 	public static void goNether() {
 		getServerPlayerEntity().setInNetherPortal(getServerPlayerEntity().getBlockPos());
 		getServerPlayerEntity().changeDimension(getNether());
+		getServerPlayerEntity().netherPortalCooldown = getServerPlayerEntity().getDefaultNetherPortalCooldown();
+	}
+
+	public static void setHud() {
+		getMC().options.debugEnabled = true;
+		getMC().options.debugProfilerEnabled = true;
+
+		// This doesn't work/is unreliable and I'm not quite sure why.
+		//getMC().openScreen(new GameMenuScreen(true));
+		//getMC().getSoundManager().pauseAll();
+
 	}
 
 	@Override
