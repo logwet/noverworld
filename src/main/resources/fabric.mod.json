@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "Nether Spawn Any%",
-  "description": "Idea by Fyroah and k4yfour",
+  "description": "Spawn in the nether with a custom hotbar. Idea by Fyroah and k4yfour",
   "authors": [
     "logwet"
   ],
