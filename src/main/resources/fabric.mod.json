@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "netherspawn-any-percent",
+  "version": "${version}",
+
+  "name": "Nether Spawn Any%",
+  "description": "Idea by Fyroah and k4yfour",
+  "authors": [
+    "logwet"
+  ],
+  "contact": {
+    "homepage": "https://github.com/logwet/netherspawn-any-percent",
+    "sources": "https://github.com/logwet/netherspawn-any-percent"
+  },
+
+  "license": "All-Rights-Reserved",
+  "icon": "assets/netherspawn-any-percent/icon.png",
+
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "me.logwet.netherspawn_any_percent.NetherSpawnAnyPercent"
+    ],
+    "client": [
+      "me.logwet.netherspawn_any_percent.NetherSpawnAnyPercentClient"
+    ]
+  },
+  "mixins": [
+    "netherspawn-any-percent.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "minecraft": "1.16.1"
+  }
+}
