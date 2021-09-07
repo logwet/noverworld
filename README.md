@@ -1,6 +1,9 @@
 # Noverworld
 
-When you create a new world your hotbar is replaced with the ninth saved creative hotbar (set with `c + 9`). 
+When you create a new world your hotbar is replaced with the ninth saved creative hotbar (set with `c + 9`).
+If you don't have a hotbar saved to that slot (ie. all 9 items empty) Noverworld will automatically save and use the following one:
+
+![Default Hotbar 9](assets/default_hotbar_9.png)
 
 You will spawn in the nether inside a portal with a random yaw (facing angle). Depending on the version you are using
 the f3 menu and pie chart will be automatically opened for you.
@@ -9,7 +12,7 @@ The y height of the portal the mod attempts to target is determined using the fo
 - 80% chance of between 7-13
 - 5% chance of between 14-59
 - 10% chance of between 60-75
-- 5%  of between 76-90
+- 5% chance of between 76-90
 
 The distribution was chosen in a fairly arbitrary manner. Make an issue if you want it changed.
 
