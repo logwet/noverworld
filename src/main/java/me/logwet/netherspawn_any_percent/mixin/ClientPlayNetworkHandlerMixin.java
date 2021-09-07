@@ -12,11 +12,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ClientPlayNetworkHandlerMixin {
     @Inject(at = @At("TAIL"), method = "onGameJoin")
     private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
-        NetherSpawnAnyPercent.setHotbars();
-        System.out.println("Nether Spawn Any%: Loaded first creative hotbar");
-        NetherSpawnAnyPercent.goNether();
-        System.out.println("Nether Spawn Any%: Sent to nether");
-        NetherSpawnAnyPercent.setHud();
-        System.out.println("Nether Spawn Any%: Opened f3 menu");
+        if (NetherSpawnAnyPercent.isNewWorld()) {
+            System.out.println("Nether Spawn Any%: Creation of new world detected");
+            NetherSpawnAnyPercent.setHotbars();
+            System.out.println("Nether Spawn Any%: Loaded ninth creative hotbar");
+            NetherSpawnAnyPercent.goNether();
+            System.out.println("Nether Spawn Any%: Sent to nether");
+            NetherSpawnAnyPercent.setHud();
+            System.out.println("Nether Spawn Any%: Opened f3 menu");
+        }
+
     }
 }

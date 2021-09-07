@@ -4,6 +4,7 @@
   "package": "me.logwet.netherspawn_any_percent.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "MinecraftClientMixin"
   ],
   "client": [
     "ClientPlayNetworkHandlerMixin"

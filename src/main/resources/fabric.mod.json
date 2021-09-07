@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "netherspawn-any-percent",
   "version": "${version}",
-
+  "accessWidener": "netherspawn-any-percent.accesswidener",
   "name": "Nether Spawn Any%",
   "description": "Spawn in the nether with a custom hotbar. Idea by Fyroah and k4yfour",
   "authors": [
