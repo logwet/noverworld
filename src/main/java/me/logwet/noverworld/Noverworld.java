@@ -1,6 +1,7 @@
 package me.logwet.noverworld;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.HotbarStorage;
@@ -14,6 +15,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,7 +23,13 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 public class Noverworld implements ModInitializer {
-	public static final Logger logger = LogManager.getLogger("Noverworld");
+	public static final String VERSION = FabricLoader.getInstance().getModContainer("noverworld").get().getMetadata().getVersion().getFriendlyString();
+	private static final Logger logger = LogManager.getLogger("Noverworld");
+
+	public static void log(Level level, String message) {
+		logger.log(level, "[Noverworld] " + message);
+	}
+
 
 	private static boolean newWorld = false;
 
@@ -107,7 +115,7 @@ public class Noverworld implements ModInitializer {
 		HotbarStorageEntry hb = getHotbar(8);
 		setClientHotbar(hb);
 		setServerHotbar(hb);
-		logger.info("Loaded ninth creative hotbar");
+		log(Level.INFO, "Loaded ninth creative hotbar");
 	}
 
 	public static void saveDefaultHotbars() {
@@ -149,7 +157,7 @@ public class Noverworld implements ModInitializer {
 //				Text text = MC.options.keysHotbar[normedIndex].getBoundKeyLocalizedText();
 //				Text text2 = MC.options.keyLoadToolbarActivator.getBoundKeyLocalizedText();
 
-				logger.info("Saved default hotbar to slot " + (normedIndex+1));
+				log(Level.INFO, "Saved default hotbar to slot " + (normedIndex+1));
 			}
 		}
 	}
@@ -161,14 +169,14 @@ public class Noverworld implements ModInitializer {
 		oldRenderDistance = Option.RENDER_DISTANCE.get(getMC().options);
 		oldFOV = Option.FOV.get(getMC().options);
 
-		logger.info("Saved Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
+		log(Level.INFO, "Saved Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
 	}
 
 	public static void resetOptions() {
 		Option.RENDER_DISTANCE.set(MC.options, oldRenderDistance);
 		Option.FOV.set(MC.options, oldFOV);
 
-		logger.info("Reset Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
+		log(Level.INFO, "Reset to Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
 	}
 
 	public static void sendToNether() {
@@ -181,12 +189,12 @@ public class Noverworld implements ModInitializer {
 
 		getServerPlayerEntity().yaw = -180f + randomInstance.nextFloat() * 360f;
 
-		logger.info("Attemping spawn at y " + yHeight + " with yaw " + getServerPlayerEntity().yaw);
+		log(Level.INFO, "Attemping spawn at y " + yHeight + " with yaw " + getServerPlayerEntity().yaw);
 
 		getServerPlayerEntity().changeDimension(getNether());
 		getServerPlayerEntity().netherPortalCooldown = getServerPlayerEntity().getDefaultNetherPortalCooldown();
 
-		logger.info("Sent to nether");
+		log(Level.INFO, "Sent to nether");
 	}
 
 	public static void setHud() {
@@ -197,7 +205,7 @@ public class Noverworld implements ModInitializer {
 		// getMC().openScreen(new GameMenuScreen(true));
 		// getMC().getSoundManager().pauseAll();
 
-		logger.info("Opened f3 menu");
+		log(Level.INFO, "Opened F3 menu");
 	}
 
 	@Override
