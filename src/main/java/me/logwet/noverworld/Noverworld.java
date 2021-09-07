@@ -121,17 +121,19 @@ public class Noverworld implements ModInitializer {
 	public static void saveDefaultHotbars() {
 		final ItemStack[][] hotbars = {
 				{
-						new ItemStack(Items.IRON_AXE),
+						new ItemStack(Items.WOODEN_AXE),
 						new ItemStack(Items.IRON_PICKAXE),
 						new ItemStack(Items.IRON_SHOVEL),
 						new ItemStack(Items.LAVA_BUCKET),
-						new ItemStack(Items.OAK_PLANKS, 16),
+						new ItemStack(Items.OAK_PLANKS, 22),
 						new ItemStack(Items.BREAD, 8),
 						new ItemStack(Items.OAK_BOAT),
 						new ItemStack(Items.CRAFTING_TABLE),
 						new ItemStack(Items.FLINT_AND_STEEL)
 				}
 		};
+
+		hotbars[0][0].setDamage(10);
 
 		int i;
 		int j;
