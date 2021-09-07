@@ -8,6 +8,10 @@ If you don't have a hotbar saved to that slot (ie. all 9 items empty) Noverworld
 You will spawn in the nether inside a portal with a random yaw (facing angle). Depending on the version you are using
 the f3 menu and pie chart will be automatically opened for you.
 
+Before you join a new world the mod saves your render distance and FOV and resets to this after you leave the world.
+_ie. this means you can configure the RD and FOV you will always spawn with by changing it in the main menu, and you
+don't have to reset these settings to your preferred defaults in between runs._
+
 The y height of the portal the mod attempts to target is determined using the following distribution:
 - 80% chance of between 7-13
 - 5% chance of between 14-59

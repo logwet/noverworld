@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.HotbarStorage;
 import net.minecraft.client.options.HotbarStorageEntry;
+import net.minecraft.client.options.Option;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -63,8 +64,8 @@ public class Noverworld implements ModInitializer {
 		return getMS().getPlayerManager().getPlayer(getPlayerName());
 	}
 
-	private static final WeightedCollection<int[]> spawnYHeightSets = new WeightedCollection<>();
 	private static final Random randomInstance = new Random();
+	private static final WeightedCollection<int[]> spawnYHeightSets = new WeightedCollection<>(randomInstance);
 
 	private static int getSpawnYHeight() {
 		int[] heightSet = spawnYHeightSets.next();
@@ -151,6 +152,23 @@ public class Noverworld implements ModInitializer {
 				logger.info("Saved default hotbar to slot " + (normedIndex+1));
 			}
 		}
+	}
+
+	private static double oldRenderDistance;
+	private static double oldFOV;
+
+	public static void saveOldOptions() {
+		oldRenderDistance = Option.RENDER_DISTANCE.get(getMC().options);
+		oldFOV = Option.FOV.get(getMC().options);
+
+		logger.info("Saved Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
+	}
+
+	public static void resetOptions() {
+		Option.RENDER_DISTANCE.set(MC.options, oldRenderDistance);
+		Option.FOV.set(MC.options, oldFOV);
+
+		logger.info("Reset Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
 	}
 
 	public static void sendToNether() {
