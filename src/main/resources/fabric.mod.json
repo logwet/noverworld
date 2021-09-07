@@ -1,32 +1,32 @@
 {
   "schemaVersion": 1,
-  "id": "netherspawn-any-percent",
+  "id": "noverworld",
   "version": "${version}",
-  "accessWidener": "netherspawn-any-percent.accesswidener",
+  "accessWidener": "noverworld.accesswidener",
   "name": "Nether Spawn Any%",
   "description": "Spawn in the nether with a custom hotbar. Idea by Fyroah and k4yfour",
   "authors": [
     "logwet"
   ],
   "contact": {
-    "homepage": "https://github.com/logwet/netherspawn-any-percent",
-    "sources": "https://github.com/logwet/netherspawn-any-percent"
+    "homepage": "https://github.com/logwet/noverworld",
+    "sources": "https://github.com/logwet/noverworld"
   },
 
   "license": "GPL-3.0",
-  "icon": "assets/netherspawn-any-percent/icon.png",
+  "icon": "assets/noverworld/icon.png",
 
   "environment": "client",
   "entrypoints": {
     "main": [
-      "me.logwet.netherspawn_any_percent.NetherSpawnAnyPercent"
+      "me.logwet.noverworld.Noverworld"
     ],
     "client": [
-      "me.logwet.netherspawn_any_percent.NetherSpawnAnyPercentClient"
+      "me.logwet.noverworld.NoverworldClient"
     ]
   },
   "mixins": [
-    "netherspawn-any-percent.mixins.json"
+    "noverworld.mixins.json"
   ],
 
   "depends": {

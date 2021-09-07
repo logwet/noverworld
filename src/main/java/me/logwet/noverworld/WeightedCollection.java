@@ -1,6 +1,6 @@
 // https://gist.github.com/raws/1667807
 
-package me.logwet.netherspawn_any_percent;
+package me.logwet.noverworld;
 
 import java.util.NavigableMap;
 import java.util.Random;

@@ -1,4 +1,4 @@
-package me.logwet.netherspawn_any_percent;
+package me.logwet.noverworld;
 
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-public class NetherSpawnAnyPercent implements ModInitializer {
+public class Noverworld implements ModInitializer {
 
 	private static boolean newWorld;
 
@@ -24,7 +24,7 @@ public class NetherSpawnAnyPercent implements ModInitializer {
 	}
 
 	public static void setNewWorld(boolean newWorld) {
-		NetherSpawnAnyPercent.newWorld = newWorld;
+		Noverworld.newWorld = newWorld;
 	}
 
 	private static MinecraftClient MC;
@@ -104,7 +104,7 @@ public class NetherSpawnAnyPercent implements ModInitializer {
 
 		getServerPlayerEntity().yaw = -180f + heightGenRandom.nextFloat() * 360f;
 
-		System.out.println("Nether Spawn Any%: Attemping spawn at y " + yHeight + " with yaw " + getServerPlayerEntity().yaw);
+		System.out.println("Noverworld: Attemping spawn at y " + yHeight + " with yaw " + getServerPlayerEntity().yaw);
 
 		getServerPlayerEntity().changeDimension(getNether());
 		getServerPlayerEntity().netherPortalCooldown = getServerPlayerEntity().getDefaultNetherPortalCooldown();
