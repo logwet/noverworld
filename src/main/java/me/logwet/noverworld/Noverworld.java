@@ -7,6 +7,7 @@ import net.minecraft.client.options.HotbarStorage;
 import net.minecraft.client.options.HotbarStorageEntry;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -106,6 +107,50 @@ public class Noverworld implements ModInitializer {
 		setClientHotbar(hb);
 		setServerHotbar(hb);
 		logger.info("Loaded ninth creative hotbar");
+	}
+
+	public static void saveDefaultHotbars() {
+		final ItemStack[][] hotbars = {
+				{
+						new ItemStack(Items.IRON_AXE),
+						new ItemStack(Items.IRON_PICKAXE),
+						new ItemStack(Items.IRON_SHOVEL),
+						new ItemStack(Items.LAVA_BUCKET),
+						new ItemStack(Items.OAK_PLANKS, 16),
+						new ItemStack(Items.BREAD, 8),
+						new ItemStack(Items.OAK_BOAT),
+						new ItemStack(Items.CRAFTING_TABLE),
+						new ItemStack(Items.FLINT_AND_STEEL)
+				}
+		};
+
+		int i;
+		int j;
+
+		for(i = 0; i < hotbars.length; i++) {
+			int normedIndex = (hotbarSize() - hotbars.length) + i;
+			HotbarStorageEntry hb = getHotbar(normedIndex);
+			int k = 0;
+
+			for(j = 0; j < hotbarSize(); ++j) {
+				ItemStack itemStack = ((ItemStack)hb.get(j)).copy();
+				if (itemStack.isEmpty()) {
+					k++;
+				}
+			}
+
+			if (k == hotbarSize()) {
+				for(j = 0; j < hotbarSize(); ++j) {
+					hb.set(j, hotbars[i][j].copy());
+				}
+				getHotbarStorage().save();
+
+//				Text text = MC.options.keysHotbar[normedIndex].getBoundKeyLocalizedText();
+//				Text text2 = MC.options.keyLoadToolbarActivator.getBoundKeyLocalizedText();
+
+				logger.info("Saved default hotbar to slot " + (normedIndex+1));
+			}
+		}
 	}
 
 	public static void sendToNether() {
