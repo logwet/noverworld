@@ -158,6 +158,7 @@ public class Noverworld implements ModInitializer {
 		int yHeight = getSpawnYHeight();
 		BlockPos pos = new BlockPos(oldPos.getX(), yHeight, oldPos.getY());
 
+		getServerPlayerEntity().setPos(pos.getX(), pos.getY(), pos.getZ());
 		getServerPlayerEntity().setInNetherPortal(pos);
 
 		getServerPlayerEntity().yaw = -180f + randomInstance.nextFloat() * 360f;

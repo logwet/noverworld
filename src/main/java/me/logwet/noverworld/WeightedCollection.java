@@ -21,7 +21,7 @@ public class WeightedCollection<E> {
     }
 
     public void add(int weight, E object) {
-        if (weight <= 0) return;
+        assert weight >= 0;
         total += weight;
         map.put(total, object);
     }
