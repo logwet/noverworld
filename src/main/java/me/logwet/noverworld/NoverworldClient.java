@@ -7,7 +7,7 @@ public class NoverworldClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		System.out.println("Using Noverworld mod!");
+		Noverworld.logger.info("Using Noverworld mod by logwet!");
 		Noverworld.setMC(MinecraftClient.getInstance());
 	}
 }

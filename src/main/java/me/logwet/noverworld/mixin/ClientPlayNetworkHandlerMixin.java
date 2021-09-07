@@ -13,14 +13,10 @@ public class ClientPlayNetworkHandlerMixin {
     @Inject(at = @At("TAIL"), method = "onGameJoin")
     private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
         if (Noverworld.isNewWorld()) {
-            System.out.println("Noverworld: Creation of new world detected");
+            Noverworld.logger.info("Creation of new world detected");
             Noverworld.setHotbars();
-            System.out.println("Noverworld: Loaded ninth creative hotbar");
-            Noverworld.goNether();
-            System.out.println("Noverworld: Sent to nether");
+            Noverworld.sendToNether();
             Noverworld.setHud();
-            System.out.println("Noverworld: Opened f3 menu");
         }
-
     }
 }
