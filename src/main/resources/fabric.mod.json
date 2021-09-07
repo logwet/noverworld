@@ -3,7 +3,7 @@
   "id": "noverworld",
   "version": "${version}",
   "accessWidener": "noverworld.accesswidener",
-  "name": "Nether Spawn Any%",
+  "name": "Noverworld",
   "description": "Spawn in the nether with a custom hotbar. Idea by Fyroah and k4yfour",
   "authors": [
     "logwet"
