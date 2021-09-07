@@ -122,7 +122,6 @@ public class Noverworld implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-//		System.out.println("Hello Fabric SERVER!");
 		spawnYHeightSets.add(80, IntStream.range(7,13).toArray());
 		spawnYHeightSets.add(5, IntStream.range(14,59).toArray());
 		spawnYHeightSets.add(10, IntStream.range(60,75).toArray());

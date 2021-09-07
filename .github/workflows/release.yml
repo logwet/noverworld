@@ -8,9 +8,8 @@ on:
 
 jobs:
   release:
-
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -29,7 +28,6 @@ jobs:
     - name: Build Changelog
       id: github_release
       uses: mikepenz/release-changelog-builder-action@v1
-      if: startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Create Release
@@ -47,6 +45,5 @@ jobs:
       id: upload-release-asset 
       uses: AButler/upload-release-assets@v2.0
       with:
-          upload_url: 'build/noverworld-*.jar'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           release-tag: ${{ github.ref }}
