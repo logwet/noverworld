@@ -3,11 +3,14 @@ package me.logwet.noverworld.mixin;
 import me.logwet.noverworld.Noverworld;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
+import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Objects;
 
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
@@ -15,6 +18,7 @@ public class ClientPlayNetworkHandlerMixin {
     private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
         if (Noverworld.isNewWorld()) {
             Noverworld.log(Level.INFO, "Creation of new world detected");
+            Noverworld.resetRandoms(Objects.requireNonNull(Noverworld.getMS().getWorld(World.OVERWORLD)).getSeed());
             Noverworld.setHotbars();
             Noverworld.sendToNether();
             Noverworld.setHud();

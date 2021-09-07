@@ -52,7 +52,7 @@ public class Noverworld implements ModInitializer {
 	}
 
 	public static IntegratedServer getMS() {
-		return MC.getServer();
+		return getMC().getServer();
 	}
 
 	public static ServerWorld getNether() {
@@ -60,7 +60,7 @@ public class Noverworld implements ModInitializer {
 	}
 
 	private static ClientPlayerEntity getClientPlayerEntity() {
-		return MC.player;
+		return getMC().player;
 	}
 
 	private static String getPlayerName() {
@@ -72,8 +72,24 @@ public class Noverworld implements ModInitializer {
 		return getMS().getPlayerManager().getPlayer(getPlayerName());
 	}
 
-	private static final Random randomInstance = new Random();
-	private static final WeightedCollection<int[]> spawnYHeightSets = new WeightedCollection<>(randomInstance);
+	private static Random randomInstance;
+	private static WeightedCollection<int[]> spawnYHeightSets;
+
+	public static void resetRandoms(long seed) {
+		randomInstance = new Random(seed);
+		int i;
+		for (i=0; i<22; i++) {
+			// This scrambling is intentional. It's there to combat determining info about the stronghold from the yaw/spawn height à la divine travel.
+			randomInstance.nextInt();
+		}
+		spawnYHeightSets = new WeightedCollection<>(randomInstance);
+		spawnYHeightSets.add(80, IntStream.range(7,13).toArray());
+		spawnYHeightSets.add(5, IntStream.range(14,59).toArray());
+		spawnYHeightSets.add(10, IntStream.range(60,75).toArray());
+		spawnYHeightSets.add(5, IntStream.range(76,90).toArray());
+
+		log(Level.INFO, "Reset randoms using world seed");
+	}
 
 	private static int getSpawnYHeight() {
 		int[] heightSet = spawnYHeightSets.next();
@@ -175,21 +191,22 @@ public class Noverworld implements ModInitializer {
 	}
 
 	public static void resetOptions() {
-		Option.RENDER_DISTANCE.set(MC.options, oldRenderDistance);
-		Option.FOV.set(MC.options, oldFOV);
+		Option.RENDER_DISTANCE.set(getMC().options, oldRenderDistance);
+		Option.FOV.set(getMC().options, oldFOV);
 
 		log(Level.INFO, "Reset to Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
 	}
 
 	public static void sendToNether() {
+		// The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
+		getServerPlayerEntity().yaw = (float)Math.floor((-180f + randomInstance.nextFloat() * 360f) * 100) / 100;
+
 		BlockPos oldPos = getServerPlayerEntity().getBlockPos();
 		int yHeight = getSpawnYHeight();
 		BlockPos pos = new BlockPos(oldPos.getX(), yHeight, oldPos.getY());
 
 		getServerPlayerEntity().setPos(pos.getX(), pos.getY(), pos.getZ());
 		getServerPlayerEntity().setInNetherPortal(pos);
-
-		getServerPlayerEntity().yaw = -180f + randomInstance.nextFloat() * 360f;
 
 		log(Level.INFO, "Attemping spawn at y " + yHeight + " with yaw " + getServerPlayerEntity().yaw);
 
@@ -212,9 +229,6 @@ public class Noverworld implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		spawnYHeightSets.add(80, IntStream.range(7,13).toArray());
-		spawnYHeightSets.add(5, IntStream.range(14,59).toArray());
-		spawnYHeightSets.add(10, IntStream.range(60,75).toArray());
-		spawnYHeightSets.add(5, IntStream.range(76,90).toArray());
+
 	}
 }
