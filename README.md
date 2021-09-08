@@ -1,5 +1,7 @@
 # Noverworld
 
+## About
+
 When you create a new world your hotbar is replaced with the ninth saved creative hotbar (set with `c + 9`).
 If you don't have a hotbar saved to that slot (ie. all 9 items empty) Noverworld will automatically save and use the following one:
 
@@ -23,15 +25,39 @@ The y height of the portal the mod attempts to target is determined using the fo
 
 The distribution was chosen in a fairly arbitrary manner. Make an issue if you want it changed.
 
-This mod has been tested with:
-- Sodium
-- Lithium
-- Starlight
-- FastReset
-- LazyDFU
-- Moonlight (threaded stronghold gen)
-- Chunk mod (puts you in the world before spawn chunks have finished generating)
+## Support
 
-I will not support multithreaded world gen such as C2ME.
+If you have a problem with the mod, a question or experience a crash follow these steps:
+1. Check the README to see if there's any relevant info on there, particularly the FAQ section.
+2. Check the GitHub Issues (including closed issues).
+3. Check the GitHub Releases to see if a newer build has been released that addresses your problem.
+4. If you're experiencing a crash, make a GitHub issue and include the crash report.
+5. If none of the above steps are helpful, DM me on discord (I'm in HBG Hub, Javacord etc. under this name).
 
-Contributions are welcome.
+## FAQ
+
+- How do I change the hotbar?
+  - Using the vanilla creative saved hotbars system. Refer to [this guide](https://www.planetminecraft.com/blog/saved-toolbars-how-to-use-your-extra-inventory-tutorial-guide/) if you need help.
+- How do I reset my hotbar to the default included in the mod?
+  - Empty your 9th hotbar (by removing all the items and saving it again with `c + 9`)
+  - The mod will overwrite that hotbar when you create a new world.
+- How do I set my FOV and render distance default?
+  - Edit those values in the game's main menu (ie. outside of a world) and they'll be saved.
+- I have a suggestion for improvement.
+  - Make a GitHub issue and include as much information as you can.
+- The mod is crashing while launching with `java.lang.reflect.InvocationTargetException`
+  - Make sure you are running the release version of the mod ie. `noverworld-x.x.x.jar` instead of `noverworld-x-x-x-dev.jar`
+- Is this incompatible with any mods:
+  - This mod has been tested and confirmed to work with:
+    - Sodium
+    - Lithium
+    - Starlight
+    - FastReset
+    - LazyDFU
+    - Moonlight (threaded stronghold gen)
+    - Chunk mod (puts you in the world before spawn chunks have finished generating)
+  - I will not support multi-threaded world gen such as C2ME. Perhaps sometime in the future as a separate branch.
+
+Contributions are welcome. This mod is licensed under the GPL-3.0, meaning any forks/derivative works must also be open
+source and licensed under the GPL-3.0. If you fork the mod and publish the distribution (without the intention of
+merging your changes upstream) please change the name from Noverworld to a suitably distinct alternative to avoid confusion.
