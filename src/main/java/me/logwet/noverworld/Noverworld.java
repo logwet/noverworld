@@ -218,7 +218,7 @@ public class Noverworld implements ModInitializer {
 
 	public static void setHud() {
 		getMC().options.debugEnabled = true;
-		getMC().options.debugProfilerEnabled = true;
+//		getMC().options.debugProfilerEnabled = true;
 
 		// This doesn't work/is unreliable and I'm not quite sure why.
 		// getMC().openScreen(new GameMenuScreen(true));

@@ -9,8 +9,7 @@ You will spawn in the nether inside a portal with a random yaw (facing angle) an
 deterministic based on your world seed, meaning creating a world with the same seed will yield the same yaw and targeted
 y height. Therefore the mod is suitable for SSG)_
 
-Depending on the version you are using
-the f3 menu and pie chart will be automatically opened for you.
+Depending on the version you are using the f3 menu will be automatically opened for you.
 
 Before you join a new world the mod saves your render distance and FOV and resets to this after you leave the world.
 _ie. this means you can configure the RD and FOV you will always spawn with by changing it in the main menu, and you
