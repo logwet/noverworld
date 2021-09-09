@@ -2,10 +2,15 @@
 
 ## About
 
-When you create a new world your hotbar is replaced with the ninth saved creative hotbar (set with `c + 9`).
-If you don't have a hotbar saved to that slot (ie. all 9 items empty) Noverworld will automatically save and use the following one:
+When you create a new world, you will spawn in the nether at a portal.
+Your inventory contains a set of standard nether entry items you would have in a usual RSG situation.
+Beat the dragon and reach the credits as usual.
 
 ![Default Hotbar 9](assets/default_hotbar_9.png)
+
+The hotbar is customizable (read the FAQ section), and you can adjust it to reflect whatever post overworld split situation you'd like, 
+but you shouldn't do so if you intend on running Noverworld the (yet to be created) speedrunning category (on https://www.speedrun.com/mc_dmce)
+as that will make runs illegitimate.
 
 You will spawn in the nether inside a portal with a random yaw (facing angle) and y height. _(These values are
 deterministic based on your world seed, meaning creating a world with the same seed will yield the same yaw and targeted
