@@ -4,6 +4,7 @@
   "package": "me.logwet.noverworld.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "DebugHudMixin",
     "MinecraftClientMixin"
   ],
   "client": [
