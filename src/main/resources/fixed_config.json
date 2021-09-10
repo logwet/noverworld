@@ -1,4 +1,8 @@
 {
+  "spawnShiftRange": [
+    0,
+    0
+  ],
   "inventory": [
     {
       "name": "WOODEN_AXE",

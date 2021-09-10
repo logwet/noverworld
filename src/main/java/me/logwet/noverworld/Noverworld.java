@@ -16,6 +16,7 @@ import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -130,14 +131,21 @@ public class Noverworld implements ModInitializer {
 		return heightSet[randomInstance.nextInt(heightSet.length)];
 	}
 
+	private static float getRandomAngle() {
+		return (float)Math.floor((-180f + randomInstance.nextFloat() * 360f) * 100) / 100;
+	}
+
 	private static Map<String, int[]> uniqueFixedConfigItems;
 	private static List<NonUniqueItem> nonUniqueFixedConfigItems;
+	private static int[] possibleSpawnShifts;
 
 	private static void readFixedConfigs() {
 		fixedConfig = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(
 				Noverworld.class.getResourceAsStream("/fixed_config.json"))), FixedConfig.class);
 		uniqueFixedConfigItems = fixedConfig.getUniqueItems();
 		nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
+
+		possibleSpawnShifts = IntStream.range(fixedConfig.getSpawnShiftRange()[0], fixedConfig.getSpawnShiftRange()[1]).toArray();
 
 		ItemsMapping.readMappingsFromFile();
 	}
@@ -267,16 +275,33 @@ public class Noverworld implements ModInitializer {
 
 	public static void sendToNether() {
 		// The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
-		getServerPlayerEntity().yaw = (float)Math.floor((-180f + randomInstance.nextFloat() * 360f) * 100) / 100;
+		getServerPlayerEntity().yaw = getRandomAngle();
+
+		float spawnShiftAngle = getRandomAngle();
+		float spawnShiftLength;
+
+		try {
+			spawnShiftLength = (float) possibleSpawnShifts[randomInstance.nextInt(possibleSpawnShifts.length)];
+		} catch (Exception e) {
+			spawnShiftLength = 0;
+		}
+
+		float spawnShiftAngleRadians = spawnShiftAngle * 0.017453292F;
 
 		BlockPos oldPos = getServerPlayerEntity().getBlockPos();
 		int yHeight = getSpawnYHeight();
-		BlockPos pos = new BlockPos(oldPos.getX(), yHeight, oldPos.getY());
+
+		BlockPos pos = new BlockPos(
+				oldPos.getX() - spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians),
+				yHeight,
+				oldPos.getZ() + spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians)
+		);
 
 		getServerPlayerEntity().setPos(pos.getX(), pos.getY(), pos.getZ());
 		getServerPlayerEntity().setInNetherPortal(pos);
 
-		log(Level.INFO, "Attemping spawn at y " + yHeight + " with yaw " + getServerPlayerEntity().yaw);
+		log(Level.INFO, "Spawn shifted " + spawnShiftLength + " blocks on yaw " + spawnShiftAngle);
+		log(Level.INFO, "Attemping spawn at " + pos.toString() + " with yaw " + getServerPlayerEntity().yaw);
 
 		getServerPlayerEntity().changeDimension(getNether());
 		getServerPlayerEntity().netherPortalCooldown = getServerPlayerEntity().getDefaultNetherPortalCooldown();
