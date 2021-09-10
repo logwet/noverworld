@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 public class NoverworldConfig {
-    private boolean test;
-
     private List<InventoryItemEntry> inventory;
 
     public List<InventoryItemEntry> getInventory() {
@@ -26,14 +24,6 @@ public class NoverworldConfig {
 
     public NoverworldConfig() {
         inventory = new ArrayList<>();
-    }
-
-    public boolean isTest() {
-        return test;
-    }
-
-    public void setTest(boolean test) {
-        this.test = test;
     }
 }
 

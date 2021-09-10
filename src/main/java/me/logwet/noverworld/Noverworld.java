@@ -129,7 +129,6 @@ public class Noverworld implements ModInitializer {
 			uniqueFixedConfigItems.forEach((name, attributes) -> newConfigInventory.add(new InventoryItemEntry(name, attributes[2]+1)));
 			config = new NoverworldConfig();
 			config.setInventory(newConfigInventory);
-			config.setTest(true);
 
 			PrintWriter writer = new PrintWriter(CONFIG_FILE_PATH.toFile());
 			writer.print("");
