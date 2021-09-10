@@ -57,7 +57,8 @@ If you have a problem with the mod, a question or experience a crash follow thes
     - Sodium
     - Lithium
     - Starlight
-    - FastReset
+    - FastReset (doesn't save world)
+    - AutoReset (automatically reset worlds w/o macro)
     - LazyDFU
     - Moonlight (threaded stronghold gen)
     - Chunk mod (puts you in the world before spawn chunks have finished generating)

@@ -18,8 +18,16 @@ public class ClientPlayNetworkHandlerMixin {
     private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
         if (Noverworld.isNewWorld()) {
             Noverworld.log(Level.INFO, "Creation of new world detected");
+
+            try {
+                Noverworld.manageConfigs();
+            } catch (Exception e) {
+                Noverworld.log(Level.FATAL, "Unable to initialize Config. This is a fatal error, please make a report on the GitHub.");
+                e.printStackTrace();
+            }
+
             Noverworld.resetRandoms(Objects.requireNonNull(Noverworld.getMS().getWorld(World.OVERWORLD)).getSeed());
-            Noverworld.setHotbars();
+            Noverworld.setPlayerInventory();
             Noverworld.sendToNether();
             Noverworld.setHud();
         }

@@ -1,0 +1,84 @@
+{
+  "inventory": [
+    {
+      "name": "WOODEN_AXE",
+      "count": 1,
+      "damage": 10,
+      "slot": 0,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "IRON_PICKAXE",
+      "count": 1,
+      "damage": 5,
+      "slot": 1,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "IRON_SHOVEL",
+      "count": 1,
+      "damage": 10,
+      "slot": 2,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "LAVA_BUCKET",
+      "count": 1,
+      "damage": 0,
+      "slot": 3,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "OAK_PLANKS",
+      "count": 22,
+      "damage": 0,
+      "slot": 4,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "OAK_BOAT",
+      "count": 1,
+      "damage": 0,
+      "slot": 5,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "CRAFTING_TABLE",
+      "count": 1,
+      "damage": 0,
+      "slot": 6,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "FLINT_AND_STEEL",
+      "count": 1,
+      "damage": 1,
+      "slot": 7,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "STICK",
+      "count": 2,
+      "damage": 0,
+      "slot": 8,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "BREAD",
+      "count": 5,
+      "damage": 0,
+      "slot": 40,
+      "editable": true,
+      "unique": true
+    }
+  ]
+}

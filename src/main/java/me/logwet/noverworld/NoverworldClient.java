@@ -9,5 +9,14 @@ public class NoverworldClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		Noverworld.log(Level.INFO, "Using Noverworld v" + Noverworld.VERSION + " by logwet!");
 		Noverworld.setMC(MinecraftClient.getInstance());
+
+		try {
+			Noverworld.manageConfigs();
+			Noverworld.log(Level.INFO, "Initialized Config");
+		} catch (Exception e) {
+			Noverworld.log(Level.FATAL, "Unable to initialize Config. This is a fatal error, please make a report on the GitHub.");
+			e.printStackTrace();
+		}
+
 	}
 }

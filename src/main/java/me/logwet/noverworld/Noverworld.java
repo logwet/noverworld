@@ -1,15 +1,17 @@
 package me.logwet.noverworld;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import me.logwet.noverworld.config.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.options.HotbarStorage;
-import net.minecraft.client.options.HotbarStorageEntry;
 import net.minecraft.client.options.Option;
-import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.Wearable;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -18,18 +20,34 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Random;
+import java.io.*;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.IntStream;
 
 public class Noverworld implements ModInitializer {
 	public static final String VERSION = FabricLoader.getInstance().getModContainer("noverworld").get().getMetadata().getVersion().getFriendlyString();
+
+//	I would like to use this first implementation as it is the suggested and recommended way of doing things with fabric.
+//	Unfortunately, it has strange behaviour in my dev environment I don't have the time to trouble shoot
+//	public static final Path CONFIG_FILE_PATH = FabricLoader.getInstance().getConfigDir().resolve("noverworld.json");
+
+	public static final Path CONFIG_FILE_PATH = Paths.get("config/noverworld.json").toAbsolutePath();
+
 	private static final Logger logger = LogManager.getLogger("Noverworld");
 
 	public static void log(Level level, String message) {
 		logger.log(level, "[Noverworld] " + message);
 	}
 
+	private static NoverworldConfig config;
+
+	private static FixedConfig fixedConfig;
 
 	private static boolean newWorld = false;
 
@@ -96,89 +114,106 @@ public class Noverworld implements ModInitializer {
 		return heightSet[randomInstance.nextInt(heightSet.length)];
 	}
 
-	private static HotbarStorage getHotbarStorage() {
-		return getMC().getCreativeHotbarStorage();
+	private static void readFixedConfig() {
+		fixedConfig = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(
+				Noverworld.class.getResourceAsStream("/static_inventory.json"))), FixedConfig.class);
 	}
 
-	private static HotbarStorageEntry getHotbar(int i) {
-		return getHotbarStorage().getSavedHotbar(i);
+	private static void readConfig() throws FileNotFoundException {
+		config = new Gson().fromJson(new FileReader(CONFIG_FILE_PATH.toFile()), NoverworldConfig.class);
 	}
 
-	private static int hotbarSize() {
-		return PlayerInventory.getHotbarSize();
-	}
+	private static void saveConfig() {
+		try {
+			List<InventoryItemEntry> newConfigInventory = new ArrayList<>();
+			uniqueFixedConfigItems.forEach((name, attributes) -> newConfigInventory.add(new InventoryItemEntry(name, attributes[2]+1)));
+			config = new NoverworldConfig();
+			config.setInventory(newConfigInventory);
+			config.setTest(true);
 
-	private static void setClientHotbar(HotbarStorageEntry hb) {
-		assert getClientPlayerEntity() != null;
-		int j;
-		for(j = 0; j < hotbarSize(); ++j) {
-			ItemStack itemStack = ((ItemStack)hb.get(j)).copy();
-			getClientPlayerEntity().inventory.setStack(j, itemStack);
+			PrintWriter writer = new PrintWriter(CONFIG_FILE_PATH.toFile());
+			writer.print("");
+			writer.close();
+
+			Files.write(CONFIG_FILE_PATH, new GsonBuilder().setPrettyPrinting().create().toJson(config).getBytes());
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+	}
+
+	private static Map<String, int[]> uniqueFixedConfigItems;
+	private static List<NonUniqueItem> nonUniqueFixedConfigItems;
+
+	public static void manageConfigs() throws FileNotFoundException {
+		readFixedConfig();
+		uniqueFixedConfigItems = fixedConfig.getUniqueItems();
+		nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
+		try {
+			readConfig();
+			if (config.getItems().size() != uniqueFixedConfigItems.size()) {
+				throw new MalformedConfigException("Config inventory length is wrong!");
+			}
+		} catch (Exception e) {
+			log(Level.WARN, "Config file not found, new one being written to config/noverworld.json");
+			saveConfig();
+			readConfig();
+		}
+	}
+
+	// Thank god for reflection ThankEgg
+	private static ItemStack getItemStackFromName(@NotNull String name) {
+		Class<?> c = Items.class;
+		try {
+			Field f = c.getDeclaredField(name.toUpperCase());
+			return new ItemStack((Item) f.get(null));
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			e.printStackTrace();
+			log(Level.ERROR, "Unable to find the ItemStack " + name + ", please double check your config. Replaced with empty slot.");
+			return ItemStack.EMPTY.copy();
+		}
+	}
+
+	private static void applyItemStack(@NotNull ItemStack itemStack, int @NotNull [] itemAttributes) {
+		itemStack.setCount(itemAttributes[0]);
+		itemStack.setDamage(itemAttributes[1]);
+
+		getServerPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
+		getClientPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
+	}
+
+	public static void setPlayerInventory() {
+		assert getClientPlayerEntity() != null;
+
+		config.getItems().forEach((slot, name) -> {
+			slot -= 1;
+			if (uniqueFixedConfigItems.containsKey(name)) {
+				ItemStack itemStack = getItemStackFromName(name);
+				int[] fixedItemAttributes = uniqueFixedConfigItems.get(name);
+
+				if (slot >= 36 && slot <= 39) {
+					if (!(itemStack.getItem() instanceof Wearable)) {
+						return; // Note, this doesn't make setPlayerInventory() return, it returns the current iteration of the forEach
+					}
+				}
+
+				int[] itemAttributes = new int[]{fixedItemAttributes[0], fixedItemAttributes[1], slot};
+				applyItemStack(itemStack, itemAttributes);
+			} else {
+				log(Level.ERROR, "The item " + name + " cannot be configured!");
+			}
+		});
+
+		nonUniqueFixedConfigItems.forEach(nonUniqueItem -> {
+			ItemStack itemStack = getItemStackFromName(nonUniqueItem.getName());
+
+			applyItemStack(itemStack, uniqueFixedConfigItems.get(nonUniqueItem.getName()));
+		});
 
 		getClientPlayerEntity().playerScreenHandler.sendContentUpdates();
+
+		log(Level.INFO, "Overwrote player inventory with configured items");
 	}
 
-	private static void setServerHotbar(HotbarStorageEntry hb) {
-		int j;
-		for(j = 0; j < hotbarSize(); ++j) {
-			ItemStack itemStack = ((ItemStack)hb.get(j)).copy();
-			getServerPlayerEntity().inventory.setStack(j, itemStack);
-		}
-	}
-
-	public static void setHotbars() {
-		HotbarStorageEntry hb = getHotbar(8);
-		setClientHotbar(hb);
-		setServerHotbar(hb);
-		log(Level.INFO, "Loaded ninth creative hotbar");
-	}
-
-	public static void saveDefaultHotbars() {
-		final ItemStack[][] hotbars = {
-				{
-						new ItemStack(Items.WOODEN_AXE),
-						new ItemStack(Items.IRON_PICKAXE),
-						new ItemStack(Items.IRON_SHOVEL),
-						new ItemStack(Items.LAVA_BUCKET),
-						new ItemStack(Items.OAK_PLANKS, 22),
-						new ItemStack(Items.BREAD, 8),
-						new ItemStack(Items.OAK_BOAT),
-						new ItemStack(Items.CRAFTING_TABLE),
-						new ItemStack(Items.FLINT_AND_STEEL)
-				}
-		};
-
-		hotbars[0][0].setDamage(10);
-
-		int i;
-		int j;
-
-		for(i = 0; i < hotbars.length; i++) {
-			int normedIndex = (hotbarSize() - hotbars.length) + i;
-			HotbarStorageEntry hb = getHotbar(normedIndex);
-			int k = 0;
-
-			for(j = 0; j < hotbarSize(); ++j) {
-				ItemStack itemStack = ((ItemStack)hb.get(j)).copy();
-				if (itemStack.isEmpty()) {
-					k++;
-				}
-			}
-
-			if (k == hotbarSize()) {
-				for(j = 0; j < hotbarSize(); ++j) {
-					hb.set(j, hotbars[i][j].copy());
-				}
-				getHotbarStorage().save();
-
-//				Text text = MC.options.keysHotbar[normedIndex].getBoundKeyLocalizedText();
-//				Text text2 = MC.options.keyLoadToolbarActivator.getBoundKeyLocalizedText();
-
-				log(Level.INFO, "Saved default hotbar to slot " + (normedIndex+1));
-			}
-		}
-	}
 
 	private static double oldRenderDistance;
 	private static double oldFOV;
