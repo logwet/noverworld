@@ -118,7 +118,7 @@ public class Noverworld implements ModInitializer {
 
 	private static void readFixedConfigs() {
 		fixedConfig = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(
-				Noverworld.class.getResourceAsStream("/static_inventory.json"))), FixedConfig.class);
+				Noverworld.class.getResourceAsStream("/fixed_config.json"))), FixedConfig.class);
 		uniqueFixedConfigItems = fixedConfig.getUniqueItems();
 		nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
 
