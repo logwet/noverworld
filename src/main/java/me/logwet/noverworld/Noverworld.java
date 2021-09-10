@@ -92,13 +92,30 @@ public class Noverworld implements ModInitializer {
 	private static Random randomInstance;
 	private static WeightedCollection<int[]> spawnYHeightSets;
 
-	public static void resetRandoms(long seed) {
-		randomInstance = new Random(seed);
-		int i;
-		for (i=0; i<22; i++) {
-			// This scrambling is intentional. It's there to combat determining info about the stronghold from the yaw/spawn height à la divine travel.
-			randomInstance.nextInt();
+	public static void resetRandoms() {
+		long rawSeed = Objects.requireNonNull(Noverworld.getMS().getWorld(World.OVERWORLD)).getSeed();
+		String rawSeedString = Long.toString(rawSeed);
+		long seed;
+		StringBuilder seedString = new StringBuilder();
+
+		/*
+		 This drops every second digit from the world seed and uses the result as the random seed for all RNG in the mod
+		 It's a measure to combat a potential divine travel esque situation.
+		 */
+		for (int i=0; i < rawSeedString.length(); i += 2) {
+			seedString.append(rawSeedString.charAt(i));
+			seedString.append("0");
 		}
+
+		try {
+			seed = Long.parseLong(seedString.toString());
+		} catch (NumberFormatException e) {
+			log(Level.INFO, "Unable to drop digits from seed. Using complete world seed.");
+			seed = rawSeed;
+		}
+
+		randomInstance = new Random(seed);
+
 		spawnYHeightSets = new WeightedCollection<>(randomInstance);
 		spawnYHeightSets.add(80, IntStream.range(7,13).toArray());
 		spawnYHeightSets.add(5, IntStream.range(14,59).toArray());

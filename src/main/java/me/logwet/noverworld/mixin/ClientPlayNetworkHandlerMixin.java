@@ -3,14 +3,11 @@ package me.logwet.noverworld.mixin;
 import me.logwet.noverworld.Noverworld;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
-import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Objects;
 
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
@@ -26,7 +23,7 @@ public class ClientPlayNetworkHandlerMixin {
                 e.printStackTrace();
             }
 
-            Noverworld.resetRandoms(Objects.requireNonNull(Noverworld.getMS().getWorld(World.OVERWORLD)).getSeed());
+            Noverworld.resetRandoms();
             Noverworld.setPlayerInventory();
             Noverworld.sendToNether();
             Noverworld.setHud();
