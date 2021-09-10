@@ -28,12 +28,8 @@ You do this through editing `config/noverworld.json`
 }
 ```
 
-| Slot range 	| Description                                                                       	|
-|------------	|-----------------------------------------------------------------------------------	|
-| 1-9        	| Hotbar<br>__1__ leftmost slot<br>⏬<br>__9__ rightmost slot                        	|
-| 10-36      	| Inventory<br>__10__ top left<br>⏬<br>__18__ top right<br>⏬<br>__36__ bottom right 	|
-| 37-40      	| Armor<br>__37__ boots<br>⏬<br>__40__ helmet                                       	|
-| 41         	| Offhand                                                                           	|
+![inventory_mapping](assets/inventory_mapping.png)
+_The slots to inventory mapping. ie. if you want to put something in the hotbar, use slot 41._
 
 Before you join a new world the mod saves your render distance and FOV, and resets to this after you leave the world.
 _ie. this means you can configure the RD and FOV you will always spawn with by changing it in the main menu, and you
@@ -82,7 +78,7 @@ If you have a problem with the mod, a question or experience a crash follow thes
     - Lithium
     - Starlight
     - FastReset (doesn't save world)
-    - AutoReset (automatically reset worlds w/o macro)
+    - AutoReset (automatically reset worlds w/o macro) ___note: some users have reported problems with this mod___
     - LazyDFU
     - Moonlight (threaded stronghold gen)
     - Chunk mod (puts you in the world before spawn chunks have finished generating)
