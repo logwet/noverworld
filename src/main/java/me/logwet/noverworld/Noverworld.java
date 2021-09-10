@@ -20,7 +20,6 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -114,9 +113,16 @@ public class Noverworld implements ModInitializer {
 		return heightSet[randomInstance.nextInt(heightSet.length)];
 	}
 
-	private static void readFixedConfig() {
+	private static Map<String, int[]> uniqueFixedConfigItems;
+	private static List<NonUniqueItem> nonUniqueFixedConfigItems;
+
+	private static void readFixedConfigs() {
 		fixedConfig = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(
 				Noverworld.class.getResourceAsStream("/static_inventory.json"))), FixedConfig.class);
+		uniqueFixedConfigItems = fixedConfig.getUniqueItems();
+		nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
+
+		ItemsMapping.readMappingsFromFile();
 	}
 
 	private static void readConfig() throws FileNotFoundException {
@@ -140,13 +146,8 @@ public class Noverworld implements ModInitializer {
 		}
 	}
 
-	private static Map<String, int[]> uniqueFixedConfigItems;
-	private static List<NonUniqueItem> nonUniqueFixedConfigItems;
-
 	public static void manageConfigs() throws FileNotFoundException {
-		readFixedConfig();
-		uniqueFixedConfigItems = fixedConfig.getUniqueItems();
-		nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
+		readFixedConfigs();
 		try {
 			readConfig();
 			if (config.getItems().size() != uniqueFixedConfigItems.size()) {
@@ -160,19 +161,35 @@ public class Noverworld implements ModInitializer {
 	}
 
 	// Thank god for reflection ThankEgg
-	private static ItemStack getItemStackFromName(@NotNull String name) {
-		Class<?> c = Items.class;
+	private static ItemStack getItemStackFromName(String name) {
+		Objects.requireNonNull(name);
+		name = name.toUpperCase();
 		try {
-			Field f = c.getDeclaredField(name.toUpperCase());
-			return new ItemStack((Item) f.get(null));
-		} catch (NoSuchFieldException | IllegalAccessException e) {
+			String target;
+
+			// Yes, this is very janky, yes, it also might be the best way to do it
+			if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+				target = FabricLoader.getInstance().getMappingResolver()
+						.mapFieldName("named", "net.minecraft.item.Items",
+								name, "net.minecraft.item.Item");
+			} else {
+				target = FabricLoader.getInstance().getMappingResolver()
+						.mapFieldName("intermediary", "net.minecraft.class_1802",
+								Objects.requireNonNull(ItemsMapping.getMappings().get(name)),
+								"net.minecraft.class_1792");
+			}
+
+			Field f = Items.class.getDeclaredField(target);
+
+			return new ItemStack((Item) Objects.requireNonNull(f.get(null)));
+		} catch (Exception e) {
 			e.printStackTrace();
 			log(Level.ERROR, "Unable to find the ItemStack " + name + ", please double check your config. Replaced with empty slot.");
 			return ItemStack.EMPTY.copy();
 		}
 	}
 
-	private static void applyItemStack(@NotNull ItemStack itemStack, int @NotNull [] itemAttributes) {
+	private static void applyItemStack(ItemStack itemStack, int[] itemAttributes) {
 		itemStack.setCount(itemAttributes[0]);
 		itemStack.setDamage(itemAttributes[1]);
 
