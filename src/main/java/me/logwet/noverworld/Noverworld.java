@@ -3,6 +3,7 @@ package me.logwet.noverworld;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.logwet.noverworld.config.*;
+import me.logwet.noverworld.mixin.ServerPlayerEntityAccessor;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -313,6 +314,11 @@ public class Noverworld implements ModInitializer {
 		getServerPlayerEntity().netherPortalCooldown = getServerPlayerEntity().getDefaultNetherPortalCooldown();
 
 		log(Level.INFO, "Sent to nether");
+	}
+
+	public static void disableSpawnInvulnerability() {
+		((ServerPlayerEntityAccessor) getServerPlayerEntity()).setJoinInvulnerabilityTicks(0);
+		log(Level.INFO, "Disabled spawn invulnerability");
 	}
 
 	public static void setHud() {

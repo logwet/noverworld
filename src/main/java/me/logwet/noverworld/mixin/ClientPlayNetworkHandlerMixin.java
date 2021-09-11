@@ -26,6 +26,7 @@ public class ClientPlayNetworkHandlerMixin {
             Noverworld.resetRandoms();
             Noverworld.setPlayerInventory();
             Noverworld.sendToNether();
+            Noverworld.disableSpawnInvulnerability();
             Noverworld.setHud();
         }
     }
