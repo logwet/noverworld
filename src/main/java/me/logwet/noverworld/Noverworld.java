@@ -292,9 +292,9 @@ public class Noverworld implements ModInitializer {
 		int yHeight = getSpawnYHeight();
 
 		BlockPos pos = new BlockPos(
-				oldPos.getX() - spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians),
+				oldPos.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
 				yHeight,
-				oldPos.getZ() + spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians)
+				oldPos.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
 		);
 
 		getServerPlayerEntity().setPos(pos.getX(), pos.getY(), pos.getZ());
