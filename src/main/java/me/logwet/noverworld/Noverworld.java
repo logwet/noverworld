@@ -14,6 +14,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.Wearable;
+import net.minecraft.network.packet.c2s.play.RecipeBookDataC2SPacket;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -225,11 +226,15 @@ public class Noverworld implements ModInitializer {
 	}
 
 	private static void applyItemStack(ItemStack itemStack, int[] itemAttributes) {
-		itemStack.setCount(itemAttributes[0]);
-		itemStack.setDamage(itemAttributes[1]);
+		if (itemStack.isStackable()) {
+			itemStack.setCount(itemAttributes[0]);
+		}
+		if (itemStack.isDamageable()) {
+			itemStack.setDamage(itemAttributes[1]);
+		}
 
-		getServerPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
-		getClientPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
+		getServerPlayerEntity().inventory.insertStack(itemAttributes[2], itemStack);
+		getClientPlayerEntity().inventory.insertStack(itemAttributes[2], itemStack);
 	}
 
 	private static void setPlayerInventory() {
@@ -330,15 +335,29 @@ public class Noverworld implements ModInitializer {
 		((HungerManagerAccessor) getServerPlayerEntity().getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
 	}
 
-	private static void setHud() {
-		getMC().options.debugEnabled = true;
-//		getMC().options.debugProfilerEnabled = true;
+	private static void openF3() {
+		try {
+			if (config.isF3Enabled()) {
+				getMC().options.debugEnabled = true;
+				log(Level.INFO, "Opened F3 menu");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-		// This doesn't work/is unreliable and I'm not quite sure why.
-		// getMC().openScreen(new GameMenuScreen(true));
-		// getMC().getSoundManager().pauseAll();
-
-		log(Level.INFO, "Opened F3 menu");
+	private static void openRecipeBook() {
+		try {
+			if (config.isRecipeBookEnabled()) {
+				getClientPlayerEntity().getRecipeBook().setGuiOpen(true);
+				Objects.requireNonNull(getMC().getNetworkHandler()).sendPacket(
+						new RecipeBookDataC2SPacket(true, true, false, false, false, false)
+				);
+				log(Level.INFO, "Opened recipe book");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void onSpawn() {
@@ -347,7 +366,8 @@ public class Noverworld implements ModInitializer {
 		sendToNether();
 		setPlayerAttributes();
 		disableSpawnInvulnerability();
-		setHud();
+		openF3();
+		openRecipeBook();
 	}
 
 	@Override

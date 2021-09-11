@@ -26,6 +26,8 @@ in the future.)_
 
 ```json
 {
+  "f3Enabled": true,
+  "recipeBookEnabled": true,
   "inventory": [
     {
       "name": "WOODEN_AXE",
@@ -82,6 +84,10 @@ If you have a problem with the mod, a question or experience a crash follow thes
   - Every new version of the mod writes a new file, just copy your settings over. Read above for an explanation of why.
 - How do I set my FOV and render distance default?
   - Edit those values in the game's main menu (ie. outside of a world) and they'll be saved.
+- I want to run noverworld without f3
+  - Set `f3Enabled` to `false` in the config file. This won't automatically open f3 before you spawn.
+- I don't book craft so I don't want the recipe book to be automatically opened by default.
+  - Set `recipeBookEnabled` to `false` in the config file. This won't automatically open the recipe book pane before you spawn.
 - I have a suggestion for improvement.
   - Make a GitHub issue and include as much information as you can.
   - Or message me on Discord.

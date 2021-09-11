@@ -6,7 +6,19 @@ import java.util.List;
 import java.util.Map;
 
 public class NoverworldConfig {
+    private boolean f3Enabled = true;
+
+    private boolean recipeBookEnabled = true;
+
     private List<InventoryItemEntry> inventory;
+
+    public boolean isF3Enabled() {
+        return f3Enabled;
+    }
+
+    public boolean isRecipeBookEnabled() {
+        return recipeBookEnabled;
+    }
 
     public List<InventoryItemEntry> getInventory() {
         return inventory;
