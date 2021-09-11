@@ -77,5 +77,5 @@ jobs:
           file: 'build/libs/noverworld-*.jar'
           delete_file: 'build/libs/noverworld-*dev.jar;build/libs/noverworld-*sources.jar'
           release_id: ${{ steps.create_release.outputs.id }}
-          overwrite: true
+          overwrite: false
           verbose: true

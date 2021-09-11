@@ -330,9 +330,15 @@ public class Noverworld implements ModInitializer {
 	}
 
 	private static void setPlayerAttributes() {
-		getServerPlayerEntity().setHealth(playerAttributes.get("health"));
-		getServerPlayerEntity().getHungerManager().setFoodLevel(Math.round(playerAttributes.get("hunger")));
-		((HungerManagerAccessor) getServerPlayerEntity().getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
+		if (playerAttributes.get("health") != 20f) {
+			getServerPlayerEntity().setHealth(playerAttributes.get("health"));
+		}
+		if (playerAttributes.get("hunger") != 20f) {
+			getServerPlayerEntity().getHungerManager().setFoodLevel(Math.round(playerAttributes.get("hunger")));
+		}
+		if (playerAttributes.get("saturation") != 20f) {
+			((HungerManagerAccessor) getServerPlayerEntity().getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
+		}
 	}
 
 	private static void openF3() {
