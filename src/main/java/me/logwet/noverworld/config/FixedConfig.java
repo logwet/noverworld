@@ -6,17 +6,19 @@ import java.util.List;
 import java.util.Map;
 
 public class FixedConfig {
+    private int[] spawnShiftRange;
+
+    private Map<String, Integer> spawnYHeightDistribution;
+
+    private List<FixedConfigInventoryItemEntry> inventory;
+
     public int[] getSpawnShiftRange() {
         return spawnShiftRange;
     }
 
-    public void setSpawnShiftRange(int[] spawnShiftRange) {
-        this.spawnShiftRange = spawnShiftRange;
+    public Map<String, Integer> getSpawnYHeightDistribution() {
+        return spawnYHeightDistribution;
     }
-
-    private int[] spawnShiftRange;
-
-    private List<FixedConfigInventoryItemEntry> inventory;
 
     public List<FixedConfigInventoryItemEntry> getInventory() {
         return inventory;

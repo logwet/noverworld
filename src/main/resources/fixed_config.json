@@ -3,6 +3,12 @@
     0,
     0
   ],
+  "spawnYHeightDistribution": {
+    "7-13": 80,
+    "14-59": 5,
+    "60-75": 10,
+    "76-90": 5
+  },
   "inventory": [
     {
       "name": "WOODEN_AXE",

@@ -118,10 +118,12 @@ public class Noverworld implements ModInitializer {
 		randomInstance = new Random(seed);
 
 		spawnYHeightSets = new WeightedCollection<>(randomInstance);
-		spawnYHeightSets.add(80, IntStream.range(7,13).toArray());
-		spawnYHeightSets.add(5, IntStream.range(14,59).toArray());
-		spawnYHeightSets.add(10, IntStream.range(60,75).toArray());
-		spawnYHeightSets.add(5, IntStream.range(76,90).toArray());
+
+		spawnYHeightDistribution.forEach((rawRange, weight) -> {
+			String[] stringRange = rawRange.split("-");
+			int[] range = new int[]{Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])};
+			spawnYHeightSets.add(weight, IntStream.range(range[0], range[1]).toArray());
+		});
 
 		log(Level.INFO, "Reset randoms using world seed");
 	}
@@ -138,14 +140,18 @@ public class Noverworld implements ModInitializer {
 	private static Map<String, int[]> uniqueFixedConfigItems;
 	private static List<NonUniqueItem> nonUniqueFixedConfigItems;
 	private static int[] possibleSpawnShifts;
+	private static Map<String, Integer> spawnYHeightDistribution;
 
-	private static void readFixedConfigs() {
+	public static void readFixedConfigs() {
 		fixedConfig = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(
 				Noverworld.class.getResourceAsStream("/fixed_config.json"))), FixedConfig.class);
+
 		uniqueFixedConfigItems = fixedConfig.getUniqueItems();
 		nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
 
 		possibleSpawnShifts = IntStream.range(fixedConfig.getSpawnShiftRange()[0], fixedConfig.getSpawnShiftRange()[1]).toArray();
+
+		spawnYHeightDistribution = fixedConfig.getSpawnYHeightDistribution();
 
 		ItemsMapping.readMappingsFromFile();
 	}
