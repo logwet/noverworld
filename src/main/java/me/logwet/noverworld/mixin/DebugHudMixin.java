@@ -17,6 +17,6 @@ public abstract class DebugHudMixin {
      */
     @Inject(method="getLeftText", at=@At("RETURN"), cancellable = true)
     private void addDebugLineMixin(CallbackInfoReturnable<List<String>> info) {
-        info.getReturnValue().add("Noverworld mod v" + Noverworld.VERSION + " loaded");
+        info.getReturnValue().add("Noverworld mod v" + Noverworld.VERSION + "by logwet");
     }
 }
