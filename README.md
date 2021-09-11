@@ -54,13 +54,9 @@ don't have to reset these settings to your preferred defaults in between runs._
 
 Depending on the version you are using the f3 menu will be automatically opened for you.
 
-When you spawn your yaw (facing angle) is randomised. The y height of the portal the mod attempts to target is also randomly determined using
-the following distribution:
-- 80% chance of between 7-13
-- 5% chance of between 14-59
-- 10% chance of between 60-75
-- 5% chance of between 76-90
-- The distribution was chosen in a fairly arbitrary manner. Make an issue if you want it changed.
+When you spawn your yaw (facing angle) is randomised. The y height of the portal the mod attempts to target is also
+randomly determined using a different distribution per release. You can see this distribution in
+[`fixed_config.json`](src/main/resources/fixed_config.json) _(Make sure to switch to the right branch)_
 
 All random values in the mod are deterministically derived from your world seed, meaning creating a world with the same
 seed will yield the same yaw and targeted y height. Therefore, the mod is suitable for SSG
