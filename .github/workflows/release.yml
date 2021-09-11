@@ -75,7 +75,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           file: 'build/libs/noverworld-*.jar'
-          delete_file: 'build/libs/noverworld-*dev.jar;build/libs/noverworld-*sources.jar'
+          delete_file: 'noverworld-*dev.jar;noverworld-*sources.jar'
           release_id: ${{ steps.create_release.outputs.id }}
           overwrite: false
           verbose: true
