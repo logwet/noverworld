@@ -23,11 +23,7 @@ public class ClientPlayNetworkHandlerMixin {
                 e.printStackTrace();
             }
 
-            Noverworld.resetRandoms();
-            Noverworld.setPlayerInventory();
-            Noverworld.sendToNether();
-            Noverworld.disableSpawnInvulnerability();
-            Noverworld.setHud();
+            Noverworld.onSpawn();
         }
     }
 }

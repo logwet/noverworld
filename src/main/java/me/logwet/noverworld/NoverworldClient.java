@@ -11,6 +11,7 @@ public class NoverworldClient implements ClientModInitializer {
 		Noverworld.setMC(MinecraftClient.getInstance());
 
 		try {
+			Noverworld.readFixedConfigs();
 			Noverworld.manageConfigs();
 			Noverworld.log(Level.INFO, "Initialized Config");
 		} catch (Exception e) {

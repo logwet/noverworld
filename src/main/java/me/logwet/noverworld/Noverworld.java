@@ -66,15 +66,15 @@ public class Noverworld implements ModInitializer {
 		MC = mc;
 	}
 
-	public static MinecraftClient getMC() {
+	private static MinecraftClient getMC() {
 		return MC;
 	}
 
-	public static IntegratedServer getMS() {
+	private static IntegratedServer getMS() {
 		return getMC().getServer();
 	}
 
-	public static ServerWorld getNether() {
+	private static ServerWorld getNether() {
 		return getMS().getWorld(World.NETHER);
 	}
 
@@ -94,7 +94,7 @@ public class Noverworld implements ModInitializer {
 	private static Random randomInstance;
 	private static WeightedCollection<int[]> spawnYHeightSets;
 
-	public static void resetRandoms() {
+	private static void resetRandoms() {
 		long rawSeed = Objects.requireNonNull(Noverworld.getMS().getWorld(World.OVERWORLD)).getSeed();
 		String rawSeedString = Long.toString(rawSeed);
 		long seed;
@@ -179,7 +179,6 @@ public class Noverworld implements ModInitializer {
 	}
 
 	public static void manageConfigs() throws FileNotFoundException {
-		readFixedConfigs();
 		try {
 			readConfig();
 			if (config.getItems().size() != uniqueFixedConfigItems.size()) {
@@ -229,7 +228,7 @@ public class Noverworld implements ModInitializer {
 		getClientPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
 	}
 
-	public static void setPlayerInventory() {
+	private static void setPlayerInventory() {
 		assert getClientPlayerEntity() != null;
 
 		config.getItems().forEach((slot, name) -> {
@@ -280,7 +279,7 @@ public class Noverworld implements ModInitializer {
 		log(Level.INFO, "Reset to Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
 	}
 
-	public static void sendToNether() {
+	private static void sendToNether() {
 		// The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
 		getServerPlayerEntity().yaw = getRandomAngle();
 
@@ -316,12 +315,12 @@ public class Noverworld implements ModInitializer {
 		log(Level.INFO, "Sent to nether");
 	}
 
-	public static void disableSpawnInvulnerability() {
+	private static void disableSpawnInvulnerability() {
 		((ServerPlayerEntityAccessor) getServerPlayerEntity()).setJoinInvulnerabilityTicks(0);
 		log(Level.INFO, "Disabled spawn invulnerability");
 	}
 
-	public static void setHud() {
+	private static void setHud() {
 		getMC().options.debugEnabled = true;
 //		getMC().options.debugProfilerEnabled = true;
 
@@ -330,6 +329,14 @@ public class Noverworld implements ModInitializer {
 		// getMC().getSoundManager().pauseAll();
 
 		log(Level.INFO, "Opened F3 menu");
+	}
+
+	public static void onSpawn() {
+		Noverworld.resetRandoms();
+		Noverworld.setPlayerInventory();
+		Noverworld.sendToNether();
+		Noverworld.disableSpawnInvulnerability();
+		Noverworld.setHud();
 	}
 
 	@Override
