@@ -14,6 +14,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.Wearable;
+import net.minecraft.network.packet.c2s.play.RecipeBookDataC2SPacket;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -334,7 +335,7 @@ public class Noverworld implements ModInitializer {
 		((HungerManagerAccessor) getServerPlayerEntity().getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
 	}
 
-	private static void openHUD() {
+	private static void openF3() {
 		try {
 			if (config.isF3Enabled()) {
 				getMC().options.debugEnabled = true;
@@ -343,7 +344,20 @@ public class Noverworld implements ModInitializer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
 
+	private static void openRecipeBook() {
+		try {
+			if (config.isRecipeBookEnabled()) {
+				getClientPlayerEntity().getRecipeBook().setGuiOpen(true);
+				Objects.requireNonNull(getMC().getNetworkHandler()).sendPacket(
+						new RecipeBookDataC2SPacket(true, true, false, false, false, false)
+				);
+				log(Level.INFO, "Opened recipe book");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void onSpawn() {
@@ -352,7 +366,8 @@ public class Noverworld implements ModInitializer {
 		sendToNether();
 		setPlayerAttributes();
 		disableSpawnInvulnerability();
-		openHUD();
+		openF3();
+		openRecipeBook();
 	}
 
 	@Override
