@@ -225,11 +225,18 @@ public class Noverworld implements ModInitializer {
 	}
 
 	private static void applyItemStack(ItemStack itemStack, int[] itemAttributes) {
-		itemStack.setCount(itemAttributes[0]);
-		itemStack.setDamage(itemAttributes[1]);
+		if (itemStack.isStackable()) {
+			itemStack.setCount(itemAttributes[0]);
+		}
+		if (itemStack.isDamageable()) {
+			itemStack.setDamage(itemAttributes[1]);
+		}
 
-		getServerPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
-		getClientPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
+//		getServerPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
+//		getClientPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
+
+		getServerPlayerEntity().inventory.insertStack(itemAttributes[2], itemStack);
+		getClientPlayerEntity().inventory.insertStack(itemAttributes[2], itemStack);
 	}
 
 	private static void setPlayerInventory() {
