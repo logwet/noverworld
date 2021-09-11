@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout master
         uses: actions/checkout@v2
         with:
-          fetch-depth: 10
+          ref: master
 
       - name: Set output
         id: vars
@@ -32,9 +32,26 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Checkout monument
+        uses: actions/checkout@v2
+        with:
+          ref: monument
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Checkout classic
+        uses: actions/checkout@v2
+        with:
+          ref: classic
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
+        if: ${{ always() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -49,6 +66,7 @@ jobs:
 
       - name: Upload all artifacts
         uses: xresloader/upload-to-github-release@v1
+        if: ${{ always() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
