@@ -160,6 +160,8 @@ public class Noverworld implements ModInitializer {
 		playerAttributes = fixedConfig.getPlayerAttributes();
 
 		ItemsMapping.readMappingsFromFile();
+
+		log(Level.INFO, "Loaded fixed configs");
 	}
 
 	private static void readConfig() throws FileNotFoundException {
@@ -339,6 +341,7 @@ public class Noverworld implements ModInitializer {
 		if (playerAttributes.get("saturation") != 20f) {
 			((HungerManagerAccessor) getServerPlayerEntity().getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
 		}
+		log(Level.INFO, "Set player attributes");
 	}
 
 	private static void openF3() {

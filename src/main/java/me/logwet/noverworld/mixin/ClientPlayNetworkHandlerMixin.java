@@ -24,6 +24,8 @@ public class ClientPlayNetworkHandlerMixin {
             }
 
             Noverworld.onSpawn();
+        } else {
+            Noverworld.log(Level.INFO, "World is not being created for the first time, Noverworld will not run");
         }
     }
 }
