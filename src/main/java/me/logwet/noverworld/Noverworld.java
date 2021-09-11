@@ -38,7 +38,7 @@ public class Noverworld implements ModInitializer {
 //	Unfortunately, it has strange behaviour in my dev environment I don't have the time to trouble shoot
 //	public static final Path CONFIG_FILE_PATH = FabricLoader.getInstance().getConfigDir().resolve("noverworld.json");
 
-	public static final Path CONFIG_FILE_PATH = Paths.get("config/noverworld.json").toAbsolutePath();
+	public static final Path CONFIG_FILE_PATH = Paths.get("config/noverworld-" + VERSION + ".json").toAbsolutePath();
 
 	private static final Logger logger = LogManager.getLogger("Noverworld");
 
@@ -185,7 +185,7 @@ public class Noverworld implements ModInitializer {
 				throw new MalformedConfigException("Config inventory length is wrong!");
 			}
 		} catch (Exception e) {
-			log(Level.WARN, "Config file not found, new one being written to config/noverworld.json");
+			log(Level.WARN, "Config file not found, new one being written.");
 			saveConfig();
 			readConfig();
 		}

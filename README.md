@@ -19,8 +19,10 @@ _The bundled inventory for the `Monument` category_
 _The bundled inventory for the `Classic` category_
 
 You cannot customise the number, type or durability of the items in your inventory but you can adjust what slot they're in.
-You do this through editing `config/noverworld.json`. _(At the moment the slot of unstackable non-unique items, eg. the beds
-in classic is not changeable. This may change in the future.)_
+You do this through editing `config/noverworld-X.X.X.json`.
+
+_(At the moment the slot of unstackable non-unique items, eg. the beds in classic, are not changeable. This may change
+in the future.)_
 
 ```json
 {
@@ -41,6 +43,10 @@ in classic is not changeable. This may change in the future.)_
 ![inventory_mapping](assets/inventory_mapping.png)
 
 _The slots to inventory mapping. ie. if you want to put something in the hotbar, use slot 41._
+
+Every new release of noverworld will create a new config file, so if you want to use your slot config from the previous
+version copy it over. This is to allow players to easily use different releases of the mod (eg. Bastion to Monument)
+at the same time without having to delete their config file every time.
 
 Before you join a new world the mod saves your render distance and FOV, and resets to this after you leave the world.
 _ie. this means you can configure the RD and FOV you will always spawn with by changing it in the main menu, and you
@@ -73,9 +79,11 @@ If you have a problem with the mod, a question or experience a crash follow thes
 - How do I download the mod?
   - The [releases](https://github.com/logwet/noverworld/releases/) page on this GitHub repo
 - How do I change the hotbar/inventory?
-  - Using the config file at `config/noverworld.json`.
+  - Using the config file at `config/noverworld-X.X.X.json`.
 - How do I reset my hotbar to the default included in the mod?
-  - Delete the user config file at `config/noverworld.json`. When you create a new world or reload the game the defaults will be applied.
+  - Delete the user config file at `config/noverworld-X.X.X.json`. When you create a new world or reload the game the defaults will be applied.
+- I updated the mod and my inventory slot config has been reset, what gives?
+  - Every new version of the mod writes a new file, just copy your settings over. Read above for an explanation of why.
 - How do I set my FOV and render distance default?
   - Edit those values in the game's main menu (ie. outside of a world) and they'll be saved.
 - I have a suggestion for improvement.
