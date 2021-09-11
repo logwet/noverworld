@@ -1,13 +1,11 @@
 {
   "spawnShiftRange": [
-    0,
-    0
+    200,
+    250
   ],
   "spawnYHeightDistribution": {
-    "7-13": 80,
-    "14-59": 5,
-    "60-75": 10,
-    "76-90": 5
+    "7-13": 90,
+    "14-60": 5
   },
   "playerAttributes": {
     "health": 20.0,
@@ -18,7 +16,7 @@
     {
       "name": "WOODEN_AXE",
       "count": 1,
-      "damage": 10,
+      "damage": 11,
       "slot": 0,
       "editable": true,
       "unique": true
@@ -26,7 +24,7 @@
     {
       "name": "IRON_PICKAXE",
       "count": 1,
-      "damage": 5,
+      "damage": 16,
       "slot": 1,
       "editable": true,
       "unique": true
@@ -49,7 +47,7 @@
     },
     {
       "name": "OAK_PLANKS",
-      "count": 22,
+      "count": 26,
       "damage": 0,
       "slot": 4,
       "editable": true,
@@ -92,6 +90,14 @@
       "count": 5,
       "damage": 0,
       "slot": 40,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "GOLD_BLOCK",
+      "count": 8,
+      "damage": 0,
+      "slot": 9,
       "editable": true,
       "unique": true
     }
