@@ -63,6 +63,8 @@ jobs:
             <CHANGELOG>
 
             Make sure to read the [README](README.md) for instructions on how the mod works and how to use it.
+
+            For end users: Make sure you are running the release version of the mod ie. `noverworld-x.x.x.jar` instead of `noverworld-x-x-x-dev.jar`
           draft: true
           prerelease: false
 
