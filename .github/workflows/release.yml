@@ -8,44 +8,52 @@ on:
 
 jobs:
   release:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/v')
+
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 100
-    - name: Set up JDK 8
-      uses: actions/setup-java@v2
-      with:
-        java-version: '8'
-        distribution: 'adopt'
-        cache: gradle
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
-    - name: Build Changelog
-      id: github_release
-      uses: mikepenz/release-changelog-builder-action@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 10
+
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+          cache: gradle
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          body: ${{steps.github_release.outputs.changelog}}
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          release_name: ${{ steps.vars.outputs.tag }}
+          body: |
+            <CHANGELOG>
+
+            Make sure to read the [README](README.md) for instructions on how the mod works and how to use it.
           draft: true
           prerelease: false
-    - uses: xresloader/upload-to-github-release@master
-      env:
+
+      - name: Upload all artifacts
+        uses: xresloader/upload-to-github-release@v1
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-          file: 'build/libs/*.jar'
+        with:
+          file: 'build/libs/noverworld-*.jar'
+          delete_file: 'build/libs/noverworld-*dev.jar;build/libs/noverworld-*sources.jar'
           release_id: ${{ steps.create_release.outputs.id }}
           overwrite: true
           verbose: true
