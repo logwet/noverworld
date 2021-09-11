@@ -6,11 +6,21 @@ When you create a new world, you will spawn in the nether at a portal.
 Your inventory contains a set of standard nether entry items you would have in a usual hypermodern RSG situation where
 you intend to do bastion trades. Beat the dragon and reach the credits as usual.
 
-![inventory](assets/inventory.png)  
-_The default inventrory_
+![bastion inventory](assets/bastion_inventory.png)
+
+_The bundled inventory for the `Bastion`/default category_
+
+![monument inventory](assets/monument_inventory.png)
+
+_The bundled inventory for the `Monument` category_
+
+![classic inventory](assets/classic_inventory.png)
+
+_The bundled inventory for the `Classic` category_
 
 You cannot customise the number, type or durability of the items in your inventory but you can adjust what slot they're in.
-You do this through editing `config/noverworld.json`
+You do this through editing `config/noverworld.json`. _(At the moment the slot of unstackable non-unique items, eg. the beds
+in classic is not changeable. This may change in the future.)_
 
 ```json
 {
