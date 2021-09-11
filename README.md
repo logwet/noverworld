@@ -29,6 +29,7 @@ You do this through editing `config/noverworld.json`
 ```
 
 ![inventory_mapping](assets/inventory_mapping.png)
+
 _The slots to inventory mapping. ie. if you want to put something in the hotbar, use slot 41._
 
 Before you join a new world the mod saves your render distance and FOV, and resets to this after you leave the world.
