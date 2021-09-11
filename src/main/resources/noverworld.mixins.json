@@ -4,12 +4,12 @@
   "package": "me.logwet.noverworld.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "DebugHudMixin",
-    "MinecraftClientMixin",
     "ServerPlayerEntityAccessor"
   ],
   "client": [
-    "ClientPlayNetworkHandlerMixin"
+    "ClientPlayNetworkHandlerMixin",
+    "DebugHudMixin",
+    "MinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1
