@@ -9,6 +9,11 @@
     "60-75": 10,
     "76-90": 5
   },
+  "playerAttributes": {
+    "health": 20.0,
+    "hunger": 20.0,
+    "saturation": 6.0
+  },
   "inventory": [
     {
       "name": "WOODEN_AXE",

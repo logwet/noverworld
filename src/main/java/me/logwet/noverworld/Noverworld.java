@@ -3,6 +3,7 @@ package me.logwet.noverworld;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.logwet.noverworld.config.*;
+import me.logwet.noverworld.mixin.HungerManagerAccessor;
 import me.logwet.noverworld.mixin.ServerPlayerEntityAccessor;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -142,6 +143,7 @@ public class Noverworld implements ModInitializer {
 	private static List<NonUniqueItem> nonUniqueFixedConfigItems;
 	private static int[] possibleSpawnShifts;
 	private static Map<String, Integer> spawnYHeightDistribution;
+	private static Map<String, Float> playerAttributes;
 
 	public static void readFixedConfigs() {
 		fixedConfig = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(
@@ -153,6 +155,8 @@ public class Noverworld implements ModInitializer {
 		possibleSpawnShifts = IntStream.range(fixedConfig.getSpawnShiftRange()[0], fixedConfig.getSpawnShiftRange()[1]).toArray();
 
 		spawnYHeightDistribution = fixedConfig.getSpawnYHeightDistribution();
+
+		playerAttributes = fixedConfig.getPlayerAttributes();
 
 		ItemsMapping.readMappingsFromFile();
 	}
@@ -320,6 +324,12 @@ public class Noverworld implements ModInitializer {
 		log(Level.INFO, "Disabled spawn invulnerability");
 	}
 
+	private static void setPlayerAttributes() {
+		getServerPlayerEntity().setHealth(playerAttributes.get("health"));
+		getServerPlayerEntity().getHungerManager().setFoodLevel(Math.round(playerAttributes.get("hunger")));
+		((HungerManagerAccessor) getServerPlayerEntity().getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
+	}
+
 	private static void setHud() {
 		getMC().options.debugEnabled = true;
 //		getMC().options.debugProfilerEnabled = true;
@@ -332,11 +342,12 @@ public class Noverworld implements ModInitializer {
 	}
 
 	public static void onSpawn() {
-		Noverworld.resetRandoms();
-		Noverworld.setPlayerInventory();
-		Noverworld.sendToNether();
-		Noverworld.disableSpawnInvulnerability();
-		Noverworld.setHud();
+		resetRandoms();
+		setPlayerInventory();
+		sendToNether();
+		setPlayerAttributes();
+		disableSpawnInvulnerability();
+		setHud();
 	}
 
 	@Override

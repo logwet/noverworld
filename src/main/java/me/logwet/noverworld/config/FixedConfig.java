@@ -10,6 +10,8 @@ public class FixedConfig {
 
     private Map<String, Integer> spawnYHeightDistribution;
 
+    private Map<String, Float> playerAttributes;
+
     private List<FixedConfigInventoryItemEntry> inventory;
 
     public int[] getSpawnShiftRange() {
@@ -18,6 +20,10 @@ public class FixedConfig {
 
     public Map<String, Integer> getSpawnYHeightDistribution() {
         return spawnYHeightDistribution;
+    }
+
+    public Map<String, Float> getPlayerAttributes() {
+        return playerAttributes;
     }
 
     public List<FixedConfigInventoryItemEntry> getInventory() {
@@ -43,5 +49,4 @@ public class FixedConfig {
         });
         return returnValues;
     }
-
 }
