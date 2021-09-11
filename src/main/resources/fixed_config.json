@@ -5,7 +5,7 @@
   ],
   "spawnYHeightDistribution": {
     "7-13": 90,
-    "14-60": 5
+    "14-60": 10
   },
   "playerAttributes": {
     "health": 20.0,
