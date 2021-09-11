@@ -253,7 +253,7 @@ public class Noverworld implements ModInitializer {
 		nonUniqueFixedConfigItems.forEach(nonUniqueItem -> {
 			ItemStack itemStack = getItemStackFromName(nonUniqueItem.getName());
 
-			applyItemStack(itemStack, uniqueFixedConfigItems.get(nonUniqueItem.getName()));
+			applyItemStack(itemStack, nonUniqueItem.getAttributes());
 		});
 
 		getClientPlayerEntity().playerScreenHandler.sendContentUpdates();
