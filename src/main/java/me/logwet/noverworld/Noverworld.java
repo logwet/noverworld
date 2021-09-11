@@ -232,9 +232,6 @@ public class Noverworld implements ModInitializer {
 			itemStack.setDamage(itemAttributes[1]);
 		}
 
-//		getServerPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
-//		getClientPlayerEntity().inventory.setStack(itemAttributes[2], itemStack);
-
 		getServerPlayerEntity().inventory.insertStack(itemAttributes[2], itemStack);
 		getClientPlayerEntity().inventory.insertStack(itemAttributes[2], itemStack);
 	}
@@ -337,15 +334,16 @@ public class Noverworld implements ModInitializer {
 		((HungerManagerAccessor) getServerPlayerEntity().getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
 	}
 
-	private static void setHud() {
-		getMC().options.debugEnabled = true;
-//		getMC().options.debugProfilerEnabled = true;
+	private static void openHUD() {
+		try {
+			if (config.isF3Enabled()) {
+				getMC().options.debugEnabled = true;
+				log(Level.INFO, "Opened F3 menu");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-		// This doesn't work/is unreliable and I'm not quite sure why.
-		// getMC().openScreen(new GameMenuScreen(true));
-		// getMC().getSoundManager().pauseAll();
-
-		log(Level.INFO, "Opened F3 menu");
 	}
 
 	public static void onSpawn() {
@@ -354,7 +352,7 @@ public class Noverworld implements ModInitializer {
 		sendToNether();
 		setPlayerAttributes();
 		disableSpawnInvulnerability();
-		setHud();
+		openHUD();
 	}
 
 	@Override

@@ -6,7 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 public class NoverworldConfig {
+    private boolean f3Enabled = true;
+
     private List<InventoryItemEntry> inventory;
+
+    public boolean isF3Enabled() {
+        return f3Enabled;
+    }
 
     public List<InventoryItemEntry> getInventory() {
         return inventory;
