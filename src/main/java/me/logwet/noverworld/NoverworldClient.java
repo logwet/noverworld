@@ -2,22 +2,82 @@ package me.logwet.noverworld;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.options.Option;
+import net.minecraft.network.packet.c2s.play.RecipeBookDataC2SPacket;
 import org.apache.logging.log4j.Level;
 
+import java.util.Objects;
+
 public class NoverworldClient implements ClientModInitializer {
+	private static MinecraftClient MC;
+
+	public static void setMC(MinecraftClient mc) {
+		MC = mc;
+	}
+
+	public static MinecraftClient getMC() {
+		return MC;
+	}
+
+	public static ClientPlayerEntity getClientPlayerEntity() {
+		return getMC().player;
+	}
+
+	private static double oldRenderDistance;
+	private static double oldFOV;
+
+	public static void saveOldOptions() {
+		oldRenderDistance = Option.RENDER_DISTANCE.get(getMC().options);
+		oldFOV = Option.FOV.get(getMC().options);
+
+		Noverworld.log(Level.INFO, "Saved Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
+	}
+
+	public static void resetOptions() {
+		Option.RENDER_DISTANCE.set(getMC().options, oldRenderDistance);
+		Option.FOV.set(getMC().options, oldFOV);
+
+		Noverworld.log(Level.INFO, "Reset to Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
+	}
+
+	private static void openF3() {
+		try {
+			if (Noverworld.config.isF3Enabled()) {
+				getMC().options.debugEnabled = true;
+				Noverworld.log(Level.INFO, "Opened F3 menu");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void openRecipeBook() {
+		try {
+			if (Noverworld.config.isRecipeBookEnabled()) {
+				getClientPlayerEntity().getRecipeBook().setGuiOpen(true);
+				Objects.requireNonNull(getMC().getNetworkHandler()).sendPacket(
+						new RecipeBookDataC2SPacket(true, true, false, false, false, false)
+				);
+				Noverworld.log(Level.INFO, "Opened recipe book");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void onClientJoin() {
+		openF3();
+		openRecipeBook();
+		Noverworld.log(Level.INFO, "Finished client side actions");
+	}
+
 	@Override
 	public void onInitializeClient() {
 		Noverworld.log(Level.INFO, "Using Noverworld v" + Noverworld.VERSION + " by logwet!");
-		Noverworld.setMC(MinecraftClient.getInstance());
 
-		try {
-			Noverworld.readFixedConfigs();
-			Noverworld.manageConfigs();
-			Noverworld.log(Level.INFO, "Initialized Config");
-		} catch (Exception e) {
-			Noverworld.log(Level.FATAL, "Unable to initialize Config. This is a fatal error, please make a report on the GitHub.");
-			e.printStackTrace();
-		}
+		setMC(MinecraftClient.getInstance());
 
+		Noverworld.commonConfigHandler();
 	}
 }

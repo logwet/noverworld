@@ -12,17 +12,15 @@
     "homepage": "https://github.com/logwet/noverworld",
     "sources": "https://github.com/logwet/noverworld"
   },
-
   "license": "GPL-3.0",
   "icon": "assets/noverworld/icon.png",
-
-  "environment": "client",
+  "environment": "*",
   "entrypoints": {
-    "main": [
-      "me.logwet.noverworld.Noverworld"
-    ],
     "client": [
       "me.logwet.noverworld.NoverworldClient"
+    ],
+    "server": [
+      "me.logwet.noverworld.NoverworldServer"
     ]
   },
   "mixins": [
