@@ -10,8 +10,8 @@ import java.util.TreeMap;
 
 public class WeightedCollection<E> {
 
-    private NavigableMap<Integer, E> map = new TreeMap<Integer, E>();
-    private Random random;
+    private final NavigableMap<Integer, E> map = new TreeMap<Integer, E>();
+    private final Random random;
     private int total = 0;
 
     public WeightedCollection() {

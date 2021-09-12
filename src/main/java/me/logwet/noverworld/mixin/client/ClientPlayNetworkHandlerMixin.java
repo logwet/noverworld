@@ -1,6 +1,9 @@
-package me.logwet.noverworld.mixin;
+package me.logwet.noverworld.mixin.client;
 
 import me.logwet.noverworld.Noverworld;
+import me.logwet.noverworld.NoverworldClient;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
 import org.apache.logging.log4j.Level;
@@ -9,21 +12,17 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@Environment(EnvType.CLIENT)
 @Mixin(ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
     @Inject(at = @At("TAIL"), method = "onGameJoin")
     private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
-        if (Noverworld.isNewWorld()) {
-            Noverworld.log(Level.INFO, "Creation of new world detected");
+        Noverworld.log(Level.INFO, "Connected Clientside");
 
-            try {
-                Noverworld.manageConfigs();
-            } catch (Exception e) {
-                Noverworld.log(Level.FATAL, "Unable to initialize Config. This is a fatal error, please make a report on the GitHub.");
-                e.printStackTrace();
-            }
+        NoverworldClient.saveOldOptions();
 
-            Noverworld.onSpawn();
-        }
+        Noverworld.refreshConfigs();
+
+        NoverworldClient.onClientJoin();
     }
 }

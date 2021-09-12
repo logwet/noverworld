@@ -6,11 +6,15 @@ import java.util.List;
 import java.util.Map;
 
 public class NoverworldConfig {
-    private boolean f3Enabled = true;
+    private final boolean f3Enabled = true;
 
-    private boolean recipeBookEnabled = true;
+    private final boolean recipeBookEnabled = true;
 
     private List<InventoryItemEntry> inventory;
+
+    public NoverworldConfig() {
+        inventory = new ArrayList<>();
+    }
 
     public boolean isF3Enabled() {
         return f3Enabled;
@@ -32,10 +36,6 @@ public class NoverworldConfig {
         Map<Integer, String> returnValues = new HashMap<>();
         inventory.forEach(item -> returnValues.put(item.getSlot(), item.getName()));
         return returnValues;
-    }
-
-    public NoverworldConfig() {
-        inventory = new ArrayList<>();
     }
 }
 
