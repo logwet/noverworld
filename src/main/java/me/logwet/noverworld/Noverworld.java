@@ -61,6 +61,10 @@ public class Noverworld {
         logger.log(level, "[Noverworld] " + message);
     }
 
+    public static void playerLog(Level level, String message, ServerPlayerEntity serverPlayerEntity) {
+        log(level, "[" + serverPlayerEntity.getEntityName() + "] " + message);
+    }
+
     public static boolean isNewWorld() {
         return newWorld;
     }
@@ -77,7 +81,7 @@ public class Noverworld {
         Noverworld.initializedPlayers = initializedPlayers;
     }
 
-    private static MinecraftServer getMS() {
+    public static MinecraftServer getMS() {
         return MS;
     }
 
@@ -262,7 +266,7 @@ public class Noverworld {
                 int[] itemAttributes = new int[]{fixedItemAttributes[0], fixedItemAttributes[1], slot};
                 applyItemStack(itemStack, itemAttributes, serverPlayerEntity);
             } else {
-                log(Level.ERROR, "The item " + name + " cannot be configured!");
+                playerLog(Level.ERROR, "The item " + name + " cannot be configured!", serverPlayerEntity);
             }
         });
 
@@ -272,7 +276,7 @@ public class Noverworld {
             applyItemStack(itemStack, nonUniqueItem.getAttributes(), serverPlayerEntity);
         });
 
-        log(Level.INFO, "Overwrote player inventory with configured items");
+        playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
     }
 
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
@@ -302,18 +306,18 @@ public class Noverworld {
         serverPlayerEntity.setPos(pos.getX(), pos.getY(), pos.getZ());
         serverPlayerEntity.setInNetherPortal(pos);
 
-        log(Level.INFO, "Spawn shifted " + spawnShiftLength + " blocks on yaw " + spawnShiftAngle);
-        log(Level.INFO, "Attemping spawn at " + pos + " with yaw " + serverPlayerEntity.yaw);
+        playerLog(Level.INFO, "Spawn shifted " + spawnShiftLength + " blocks on yaw " + spawnShiftAngle, serverPlayerEntity);
+        playerLog(Level.INFO, "Attemping spawn at " + pos + " with yaw " + serverPlayerEntity.yaw, serverPlayerEntity);
 
         serverPlayerEntity.changeDimension(getNether());
         serverPlayerEntity.netherPortalCooldown = serverPlayerEntity.getDefaultNetherPortalCooldown();
 
-        log(Level.INFO, "Sent to nether");
+        playerLog(Level.INFO, "Sent to nether", serverPlayerEntity);
     }
 
     private static void disableSpawnInvulnerability(ServerPlayerEntity serverPlayerEntity) {
         ((ServerPlayerEntityAccessor) serverPlayerEntity).setJoinInvulnerabilityTicks(0);
-        log(Level.INFO, "Disabled spawn invulnerability");
+        playerLog(Level.INFO, "Disabled spawn invulnerability", serverPlayerEntity);
     }
 
     private static void setPlayerAttributes(ServerPlayerEntity serverPlayerEntity) {
@@ -327,12 +331,12 @@ public class Noverworld {
         if (playerAttributes.get("saturation") < 20.0F) {
             ((HungerManagerAccessor) serverPlayerEntity.getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
         }
-        log(Level.INFO, "Set player attributes");
+        playerLog(Level.INFO, "Set player attributes", serverPlayerEntity);
     }
 
     public static void onServerJoin(ServerPlayerEntity serverPlayerEntity) {
-        if (Noverworld.isNewWorld() && getInitializedPlayers().add(serverPlayerEntity.getUuid())) {
-            Noverworld.log(Level.INFO, "Player " + serverPlayerEntity.getEntityName() + " connected and recognised");
+        if (isNewWorld() && getInitializedPlayers().add(serverPlayerEntity.getUuid())) {
+            playerLog(Level.INFO, "Player connected and recognised", serverPlayerEntity);
 
             resetRandoms();
             setPlayerInventory(serverPlayerEntity);
@@ -340,11 +344,9 @@ public class Noverworld {
             setPlayerAttributes(serverPlayerEntity);
             disableSpawnInvulnerability(serverPlayerEntity);
 
-            log(Level.INFO, "Finished server side actions");
+            playerLog(Level.INFO, "Finished server side actions", serverPlayerEntity);
         } else {
-            Noverworld.log(Level.INFO, "Noverworld will not handle player " + serverPlayerEntity.getEntityName());
+            playerLog(Level.INFO, "Noverworld will not handle player", serverPlayerEntity);
         }
-
-
     }
 }
