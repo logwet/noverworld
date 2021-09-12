@@ -17,12 +17,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ClientPlayNetworkHandlerMixin {
     @Inject(at = @At("TAIL"), method = "onGameJoin")
     private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
+        Noverworld.log(Level.INFO, "Connected Clientside");
+
         NoverworldClient.saveOldOptions();
-        if (Noverworld.isNewWorld()) {
-            Noverworld.log(Level.INFO, "Connected Clientside");
-            NoverworldClient.onClientJoin();
-        } else {
-            Noverworld.log(Level.INFO, "World is not being created for the first time, Noverworld will not run");
-        }
+
+        Noverworld.refreshConfigs();
+
+        NoverworldClient.onClientJoin();
     }
 }

@@ -18,7 +18,7 @@ public abstract class DebugHudMixin {
      * @author DuncanRuns
      * @reason Puts mod notice in F3 menu
      */
-    @Inject(at=@At("RETURN"), method="getLeftText", cancellable = true)
+    @Inject(at = @At("RETURN"), method = "getLeftText", cancellable = true)
     private void addDebugLineMixin(CallbackInfoReturnable<List<String>> info) {
         info.getReturnValue().add("Noverworld mod v" + Noverworld.VERSION + " by logwet");
     }

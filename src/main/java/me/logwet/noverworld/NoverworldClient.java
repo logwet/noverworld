@@ -11,21 +11,20 @@ import java.util.Objects;
 
 public class NoverworldClient implements ClientModInitializer {
 	private static MinecraftClient MC;
-
-	public static void setMC(MinecraftClient mc) {
-		MC = mc;
-	}
-
-	public static MinecraftClient getMC() {
-		return MC;
-	}
-
-	public static ClientPlayerEntity getClientPlayerEntity() {
-		return getMC().player;
-	}
-
 	private static double oldRenderDistance;
 	private static double oldFOV;
+
+	public static MinecraftClient getMC() {
+        return MC;
+    }
+
+	public static void setMC(MinecraftClient mc) {
+        MC = mc;
+    }
+
+	public static ClientPlayerEntity getClientPlayerEntity() {
+        return getMC().player;
+    }
 
 	public static void saveOldOptions() {
 		oldRenderDistance = Option.RENDER_DISTANCE.get(getMC().options);
