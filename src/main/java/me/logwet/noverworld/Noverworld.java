@@ -3,19 +3,15 @@ package me.logwet.noverworld;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.logwet.noverworld.config.*;
-import me.logwet.noverworld.mixin.HungerManagerAccessor;
-import me.logwet.noverworld.mixin.ServerPlayerEntityAccessor;
-import net.fabricmc.api.ModInitializer;
+import me.logwet.noverworld.mixin.common.HungerManagerAccessor;
+import me.logwet.noverworld.mixin.common.ServerPlayerEntityAccessor;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.options.Option;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.Wearable;
-import net.minecraft.network.packet.c2s.play.RecipeBookDataC2SPacket;
-import net.minecraft.server.integrated.IntegratedServer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -25,7 +21,10 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,351 +32,321 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.IntStream;
 
-public class Noverworld implements ModInitializer {
-	public static final String VERSION = FabricLoader.getInstance().getModContainer("noverworld").get().getMetadata().getVersion().getFriendlyString();
+public class Noverworld {
+    public static final String VERSION = FabricLoader.getInstance().getModContainer("noverworld").get().getMetadata().getVersion().getFriendlyString();
 
 //	I would like to use this first implementation as it is the suggested and recommended way of doing things with fabric.
 //	Unfortunately, it has strange behaviour in my dev environment I don't have the time to trouble shoot
 //	public static final Path CONFIG_FILE_PATH = FabricLoader.getInstance().getConfigDir().resolve("noverworld.json");
 
-	public static final Path CONFIG_FILE_PATH = Paths.get("config/noverworld-" + VERSION + ".json").toAbsolutePath();
+    public static final Path CONFIG_FILE_PATH = Paths.get("config/noverworld-" + VERSION + ".json").toAbsolutePath();
 
-	private static final Logger logger = LogManager.getLogger("Noverworld");
+    public static final boolean IS_CLIENT = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
 
-	public static void log(Level level, String message) {
-		logger.log(level, "[Noverworld] " + message);
-	}
+    private static final Logger logger = LogManager.getLogger("Noverworld");
+    public static NoverworldConfig config;
+    private static FixedConfig fixedConfig;
+    private static boolean newWorld = false;
+    private static Set<UUID> initializedPlayers;
+    private static MinecraftServer MS;
+    private static Random playerRandomInstance;
+    private static WeightedCollection<int[]> spawnYHeightSets;
+    private static Map<String, int[]> uniqueFixedConfigItems;
+    private static List<NonUniqueItem> nonUniqueFixedConfigItems;
+    private static int[] possibleSpawnShifts;
+    private static Map<String, Integer> spawnYHeightDistribution;
+    private static Map<String, Float> playerAttributes;
 
-	private static NoverworldConfig config;
+    public static void log(Level level, String message) {
+        logger.log(level, "[Noverworld] " + message);
+    }
 
-	private static FixedConfig fixedConfig;
+    public static void playerLog(Level level, String message, ServerPlayerEntity serverPlayerEntity) {
+        log(level, "[" + serverPlayerEntity.getEntityName() + "] " + message);
+    }
 
-	private static boolean newWorld = false;
+    public static boolean isNewWorld() {
+        return newWorld;
+    }
 
-	public static boolean isNewWorld() {
-		return newWorld;
-	}
+    public static void setNewWorld(boolean newWorld) {
+        Noverworld.newWorld = newWorld;
+    }
 
-	public static void setNewWorld(boolean newWorld) {
-		Noverworld.newWorld = newWorld;
-	}
+    public static Set<UUID> getInitializedPlayers() {
+        return initializedPlayers;
+    }
 
-	private static MinecraftClient MC;
+    public static void setInitializedPlayers(Set<UUID> initializedPlayers) {
+        Noverworld.initializedPlayers = initializedPlayers;
+    }
 
-	public static void setMC(MinecraftClient mc) {
-		MC = mc;
-	}
+    public static MinecraftServer getMS() {
+        return MS;
+    }
 
-	private static MinecraftClient getMC() {
-		return MC;
-	}
+    public static void setMS(MinecraftServer ms) {
+        setInitializedPlayers(new HashSet<>());
+        MS = ms;
+    }
 
-	private static IntegratedServer getMS() {
-		return getMC().getServer();
-	}
+    private static ServerWorld getNether() {
+        return getMS().getWorld(World.NETHER);
+    }
 
-	private static ServerWorld getNether() {
-		return getMS().getWorld(World.NETHER);
-	}
+    private static void resetRandoms() {
+        long rawSeed = Noverworld.getMS().getOverworld().getSeed();
+        String rawSeedString = Long.toString(rawSeed);
+        long seed;
+        StringBuilder seedString = new StringBuilder();
 
-	private static ClientPlayerEntity getClientPlayerEntity() {
-		return getMC().player;
-	}
-
-	private static String getPlayerName() {
-		assert getClientPlayerEntity() != null;
-		return getClientPlayerEntity().getName().asString();
-	}
-
-	private static ServerPlayerEntity getServerPlayerEntity() {
-		return getMS().getPlayerManager().getPlayer(getPlayerName());
-	}
-
-	private static Random randomInstance;
-	private static WeightedCollection<int[]> spawnYHeightSets;
-
-	private static void resetRandoms() {
-		long rawSeed = Objects.requireNonNull(Noverworld.getMS().getWorld(World.OVERWORLD)).getSeed();
-		String rawSeedString = Long.toString(rawSeed);
-		long seed;
-		StringBuilder seedString = new StringBuilder();
-
-		/*
+        /*
 		 This drops every second digit from the world seed and uses the result as the random seed for all RNG in the mod
 		 It's a measure to combat a potential divine travel esque situation.
 		 */
-		for (int i=0; i < rawSeedString.length(); i += 2) {
-			seedString.append(rawSeedString.charAt(i));
-			seedString.append("0");
-		}
+        for (int i = 0; i < rawSeedString.length(); i += 2) {
+            seedString.append(rawSeedString.charAt(i));
+            seedString.append("0");
+        }
 
-		try {
-			seed = Long.parseLong(seedString.toString());
-		} catch (NumberFormatException e) {
-			log(Level.INFO, "Unable to drop digits from seed. Using complete world seed.");
-			seed = rawSeed;
-		}
+        try {
+            seed = Long.parseLong(seedString.toString());
+        } catch (NumberFormatException e) {
+            log(Level.INFO, "Unable to drop digits from seed. Using complete world seed.");
+            seed = rawSeed;
+        }
 
-		randomInstance = new Random(seed);
+        playerRandomInstance = new Random(seed);
 
-		spawnYHeightSets = new WeightedCollection<>(randomInstance);
+        spawnYHeightSets = new WeightedCollection<>(playerRandomInstance);
 
-		spawnYHeightDistribution.forEach((rawRange, weight) -> {
-			String[] stringRange = rawRange.split("-");
-			int[] range = new int[]{Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])};
-			spawnYHeightSets.add(weight, IntStream.range(range[0], range[1]).toArray());
-		});
+        spawnYHeightDistribution.forEach((rawRange, weight) -> {
+            String[] stringRange = rawRange.split("-");
+            int[] range = new int[]{Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])};
+            spawnYHeightSets.add(weight, IntStream.range(range[0], range[1]).toArray());
+        });
 
-		log(Level.INFO, "Reset randoms using world seed");
-	}
+        log(Level.INFO, "Reset randoms using world seed");
+    }
 
-	private static int getSpawnYHeight() {
-		int[] heightSet = spawnYHeightSets.next();
-		return heightSet[randomInstance.nextInt(heightSet.length)];
-	}
+    private static int getSpawnYHeight() {
+        int[] heightSet = spawnYHeightSets.next();
+        return heightSet[playerRandomInstance.nextInt(heightSet.length)];
+    }
 
-	private static float getRandomAngle() {
-		return (float)Math.floor((-180f + randomInstance.nextFloat() * 360f) * 100) / 100;
-	}
+    private static float getRandomAngle() {
+        return (float) Math.floor((-180f + playerRandomInstance.nextFloat() * 360f) * 100) / 100;
+    }
 
-	private static Map<String, int[]> uniqueFixedConfigItems;
-	private static List<NonUniqueItem> nonUniqueFixedConfigItems;
-	private static int[] possibleSpawnShifts;
-	private static Map<String, Integer> spawnYHeightDistribution;
-	private static Map<String, Float> playerAttributes;
+    public static void readFixedConfigs() {
+        fixedConfig = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(
+                Noverworld.class.getResourceAsStream("/fixed_config.json"))), FixedConfig.class);
 
-	public static void readFixedConfigs() {
-		fixedConfig = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(
-				Noverworld.class.getResourceAsStream("/fixed_config.json"))), FixedConfig.class);
+        uniqueFixedConfigItems = fixedConfig.getUniqueItems();
+        nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
 
-		uniqueFixedConfigItems = fixedConfig.getUniqueItems();
-		nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
+        possibleSpawnShifts = IntStream.range(fixedConfig.getSpawnShiftRange()[0], fixedConfig.getSpawnShiftRange()[1]).toArray();
 
-		possibleSpawnShifts = IntStream.range(fixedConfig.getSpawnShiftRange()[0], fixedConfig.getSpawnShiftRange()[1]).toArray();
+        spawnYHeightDistribution = fixedConfig.getSpawnYHeightDistribution();
 
-		spawnYHeightDistribution = fixedConfig.getSpawnYHeightDistribution();
+        playerAttributes = fixedConfig.getPlayerAttributes();
 
-		playerAttributes = fixedConfig.getPlayerAttributes();
+        ItemsMapping.readMappingsFromFile();
 
-		ItemsMapping.readMappingsFromFile();
-	}
+        log(Level.INFO, "Loaded fixed configs");
+    }
 
-	private static void readConfig() throws FileNotFoundException {
-		config = new Gson().fromJson(new FileReader(CONFIG_FILE_PATH.toFile()), NoverworldConfig.class);
-	}
+    private static void readConfig() throws FileNotFoundException {
+        config = new Gson().fromJson(new FileReader(CONFIG_FILE_PATH.toFile()), NoverworldConfig.class);
+    }
 
-	private static void saveConfig() {
-		try {
-			List<InventoryItemEntry> newConfigInventory = new ArrayList<>();
-			uniqueFixedConfigItems.forEach((name, attributes) -> newConfigInventory.add(new InventoryItemEntry(name, attributes[2]+1)));
-			config = new NoverworldConfig();
-			config.setInventory(newConfigInventory);
+    private static void saveConfig() {
+        try {
+            List<InventoryItemEntry> newConfigInventory = new ArrayList<>();
+            uniqueFixedConfigItems.forEach((name, attributes) -> newConfigInventory.add(new InventoryItemEntry(name, attributes[2] + 1)));
+            config = new NoverworldConfig();
+            config.setInventory(newConfigInventory);
 
-			PrintWriter writer = new PrintWriter(CONFIG_FILE_PATH.toFile());
-			writer.print("");
-			writer.close();
+            PrintWriter writer = new PrintWriter(CONFIG_FILE_PATH.toFile());
+            writer.print("");
+            writer.close();
 
-			Files.write(CONFIG_FILE_PATH, new GsonBuilder().setPrettyPrinting().create().toJson(config).getBytes());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+            Files.write(CONFIG_FILE_PATH, new GsonBuilder().setPrettyPrinting().create().toJson(config).getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	public static void manageConfigs() throws FileNotFoundException {
-		try {
-			readConfig();
-			if (config.getItems().size() != uniqueFixedConfigItems.size()) {
-				throw new MalformedConfigException("Config inventory length is wrong!");
-			}
-		} catch (Exception e) {
-			log(Level.WARN, "Config file not found, new one being written.");
-			saveConfig();
-			readConfig();
-		}
-	}
+    private static void manageConfigs() throws FileNotFoundException {
+        try {
+            readConfig();
+            if (config.getItems().size() != uniqueFixedConfigItems.size()) {
+                throw new MalformedConfigException("Config inventory length is wrong!");
+            }
+        } catch (Exception e) {
+            log(Level.WARN, "Config file not found, new one being written.");
+            saveConfig();
+            readConfig();
+        }
+    }
 
-	// Thank god for reflection ThankEgg
-	private static ItemStack getItemStackFromName(String name) {
-		Objects.requireNonNull(name);
-		name = name.toUpperCase();
-		try {
-			String target;
+    public static void refreshConfigs() {
+        try {
+            manageConfigs();
+        } catch (Exception e) {
+            log(Level.FATAL, "Unable to initialize Config. This is a fatal error, please make a report on the GitHub.");
+            e.printStackTrace();
+        }
+    }
 
-			// Yes, this is very janky, yes, it also might be the best way to do it
-			if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-				target = FabricLoader.getInstance().getMappingResolver()
-						.mapFieldName("named", "net.minecraft.item.Items",
-								name, "net.minecraft.item.Item");
-			} else {
-				target = FabricLoader.getInstance().getMappingResolver()
-						.mapFieldName("intermediary", "net.minecraft.class_1802",
-								Objects.requireNonNull(ItemsMapping.getMappings().get(name)),
-								"net.minecraft.class_1792");
-			}
+    public static void commonConfigHandler() {
+        try {
+            readFixedConfigs();
+            manageConfigs();
+            log(Level.INFO, "Initialized Config");
+        } catch (Exception e) {
+            log(Level.FATAL, "Unable to initialize Config. This is a fatal error, please make a report on the GitHub.");
+            e.printStackTrace();
+        }
+    }
 
-			Field f = Items.class.getDeclaredField(target);
+    // Thank god for reflection ThankEgg
+    private static ItemStack getItemStackFromName(String name) {
+        Objects.requireNonNull(name);
+        name = name.toUpperCase();
+        try {
+            String target;
 
-			return new ItemStack((Item) Objects.requireNonNull(f.get(null)));
-		} catch (Exception e) {
-			e.printStackTrace();
-			log(Level.ERROR, "Unable to find the ItemStack " + name + ", please double check your config. Replaced with empty slot.");
-			return ItemStack.EMPTY.copy();
-		}
-	}
+            // Yes, this is very janky, yes, it also might be the best way to do it
+            if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+                target = FabricLoader.getInstance().getMappingResolver()
+                        .mapFieldName("named", "net.minecraft.item.Items",
+                                name, "net.minecraft.item.Item");
+            } else {
+                target = FabricLoader.getInstance().getMappingResolver()
+                        .mapFieldName("intermediary", "net.minecraft.class_1802",
+                                Objects.requireNonNull(ItemsMapping.getMappings().get(name)),
+                                "net.minecraft.class_1792");
+            }
 
-	private static void applyItemStack(ItemStack itemStack, int[] itemAttributes) {
-		if (itemStack.isStackable()) {
-			itemStack.setCount(itemAttributes[0]);
-		}
-		if (itemStack.isDamageable()) {
-			itemStack.setDamage(itemAttributes[1]);
-		}
+            Field f = Items.class.getDeclaredField(target);
 
-		getServerPlayerEntity().inventory.insertStack(itemAttributes[2], itemStack);
-		getClientPlayerEntity().inventory.insertStack(itemAttributes[2], itemStack);
-	}
+            return new ItemStack((Item) Objects.requireNonNull(f.get(null)));
+        } catch (Exception e) {
+            e.printStackTrace();
+            log(Level.ERROR, "Unable to find the ItemStack " + name + ", please double check your config. Replaced with empty slot.");
+            return ItemStack.EMPTY.copy();
+        }
+    }
 
-	private static void setPlayerInventory() {
-		assert getClientPlayerEntity() != null;
+    private static void applyItemStack(ItemStack itemStack, int[] itemAttributes, ServerPlayerEntity serverPlayerEntity) {
+        if (itemStack.isStackable()) {
+            itemStack.setCount(itemAttributes[0]);
+        }
+        if (itemStack.isDamageable()) {
+            itemStack.setDamage(itemAttributes[1]);
+        }
 
-		config.getItems().forEach((slot, name) -> {
-			slot -= 1;
-			if (uniqueFixedConfigItems.containsKey(name)) {
-				ItemStack itemStack = getItemStackFromName(name);
-				int[] fixedItemAttributes = uniqueFixedConfigItems.get(name);
+        serverPlayerEntity.inventory.insertStack(itemAttributes[2], itemStack);
+    }
 
-				if (slot >= 36 && slot <= 39) {
-					if (!(itemStack.getItem() instanceof Wearable)) {
-						return; // Note, this doesn't make setPlayerInventory() return, it returns the current iteration of the forEach
-					}
-				}
+    private static void setPlayerInventory(ServerPlayerEntity serverPlayerEntity) {
+        config.getItems().forEach((slot, name) -> {
+            slot -= 1;
+            if (uniqueFixedConfigItems.containsKey(name)) {
+                ItemStack itemStack = getItemStackFromName(name);
+                int[] fixedItemAttributes = uniqueFixedConfigItems.get(name);
 
-				int[] itemAttributes = new int[]{fixedItemAttributes[0], fixedItemAttributes[1], slot};
-				applyItemStack(itemStack, itemAttributes);
-			} else {
-				log(Level.ERROR, "The item " + name + " cannot be configured!");
-			}
-		});
+                if (slot >= 36 && slot <= 39) {
+                    if (!(itemStack.getItem() instanceof Wearable)) {
+                        return; // Note, this doesn't make setPlayerInventory() return, it returns the current iteration of the forEach
+                    }
+                }
 
-		nonUniqueFixedConfigItems.forEach(nonUniqueItem -> {
-			ItemStack itemStack = getItemStackFromName(nonUniqueItem.getName());
+                int[] itemAttributes = new int[]{fixedItemAttributes[0], fixedItemAttributes[1], slot};
+                applyItemStack(itemStack, itemAttributes, serverPlayerEntity);
+            } else {
+                playerLog(Level.ERROR, "The item " + name + " cannot be configured!", serverPlayerEntity);
+            }
+        });
 
-			applyItemStack(itemStack, nonUniqueItem.getAttributes());
-		});
+        nonUniqueFixedConfigItems.forEach(nonUniqueItem -> {
+            ItemStack itemStack = getItemStackFromName(nonUniqueItem.getName());
 
-		getClientPlayerEntity().playerScreenHandler.sendContentUpdates();
+            applyItemStack(itemStack, nonUniqueItem.getAttributes(), serverPlayerEntity);
+        });
 
-		log(Level.INFO, "Overwrote player inventory with configured items");
-	}
+        playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
+    }
 
+    private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
+        // The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
+        serverPlayerEntity.yaw = getRandomAngle();
 
-	private static double oldRenderDistance;
-	private static double oldFOV;
+        float spawnShiftAngle = getRandomAngle();
+        float spawnShiftLength;
 
-	public static void saveOldOptions() {
-		oldRenderDistance = Option.RENDER_DISTANCE.get(getMC().options);
-		oldFOV = Option.FOV.get(getMC().options);
+        try {
+            spawnShiftLength = (float) possibleSpawnShifts[playerRandomInstance.nextInt(possibleSpawnShifts.length)];
+        } catch (Exception e) {
+            spawnShiftLength = 0;
+        }
 
-		log(Level.INFO, "Saved Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
-	}
+        float spawnShiftAngleRadians = spawnShiftAngle * 0.017453292F;
 
-	public static void resetOptions() {
-		Option.RENDER_DISTANCE.set(getMC().options, oldRenderDistance);
-		Option.FOV.set(getMC().options, oldFOV);
+        BlockPos oldPos = serverPlayerEntity.getBlockPos();
+        int yHeight = getSpawnYHeight();
 
-		log(Level.INFO, "Reset to Render Distance " + oldRenderDistance + " and FOV " + oldFOV);
-	}
+        BlockPos pos = new BlockPos(
+                oldPos.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
+                yHeight,
+                oldPos.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
+        );
 
-	private static void sendToNether() {
-		// The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
-		getServerPlayerEntity().yaw = getRandomAngle();
+        serverPlayerEntity.setPos(pos.getX(), pos.getY(), pos.getZ());
+        serverPlayerEntity.setInNetherPortal(pos);
 
-		float spawnShiftAngle = getRandomAngle();
-		float spawnShiftLength;
+        playerLog(Level.INFO, "Spawn shifted " + spawnShiftLength + " blocks on yaw " + spawnShiftAngle, serverPlayerEntity);
+        playerLog(Level.INFO, "Attemping spawn at " + pos + " with yaw " + serverPlayerEntity.yaw, serverPlayerEntity);
 
-		try {
-			spawnShiftLength = (float) possibleSpawnShifts[randomInstance.nextInt(possibleSpawnShifts.length)];
-		} catch (Exception e) {
-			spawnShiftLength = 0;
-		}
+        serverPlayerEntity.changeDimension(getNether());
+        serverPlayerEntity.netherPortalCooldown = serverPlayerEntity.getDefaultNetherPortalCooldown();
 
-		float spawnShiftAngleRadians = spawnShiftAngle * 0.017453292F;
+        playerLog(Level.INFO, "Sent to nether", serverPlayerEntity);
+    }
 
-		BlockPos oldPos = getServerPlayerEntity().getBlockPos();
-		int yHeight = getSpawnYHeight();
+    private static void disableSpawnInvulnerability(ServerPlayerEntity serverPlayerEntity) {
+        ((ServerPlayerEntityAccessor) serverPlayerEntity).setJoinInvulnerabilityTicks(0);
+        playerLog(Level.INFO, "Disabled spawn invulnerability", serverPlayerEntity);
+    }
 
-		BlockPos pos = new BlockPos(
-				oldPos.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
-				yHeight,
-				oldPos.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
-		);
+    private static void setPlayerAttributes(ServerPlayerEntity serverPlayerEntity) {
+        if (playerAttributes.get("health") < 20.0F) {
+            serverPlayerEntity.setHealth(playerAttributes.get("health"));
+        }
+        if (playerAttributes.get("hunger") < 20.0F) {
+            serverPlayerEntity.getHungerManager().setFoodLevel(Math.round(playerAttributes.get("hunger")));
+        }
 
-		getServerPlayerEntity().setPos(pos.getX(), pos.getY(), pos.getZ());
-		getServerPlayerEntity().setInNetherPortal(pos);
+        if (playerAttributes.get("saturation") < 20.0F) {
+            ((HungerManagerAccessor) serverPlayerEntity.getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
+        }
+        playerLog(Level.INFO, "Set player attributes", serverPlayerEntity);
+    }
 
-		log(Level.INFO, "Spawn shifted " + spawnShiftLength + " blocks on yaw " + spawnShiftAngle);
-		log(Level.INFO, "Attemping spawn at " + pos.toString() + " with yaw " + getServerPlayerEntity().yaw);
+    public static void onServerJoin(ServerPlayerEntity serverPlayerEntity) {
+        if (isNewWorld() && getInitializedPlayers().add(serverPlayerEntity.getUuid())) {
+            playerLog(Level.INFO, "Player connected and recognised", serverPlayerEntity);
 
-		getServerPlayerEntity().changeDimension(getNether());
-		getServerPlayerEntity().netherPortalCooldown = getServerPlayerEntity().getDefaultNetherPortalCooldown();
+            resetRandoms();
+            setPlayerInventory(serverPlayerEntity);
+            sendToNether(serverPlayerEntity);
+            setPlayerAttributes(serverPlayerEntity);
+            disableSpawnInvulnerability(serverPlayerEntity);
 
-		log(Level.INFO, "Sent to nether");
-	}
-
-	private static void disableSpawnInvulnerability() {
-		((ServerPlayerEntityAccessor) getServerPlayerEntity()).setJoinInvulnerabilityTicks(0);
-		log(Level.INFO, "Disabled spawn invulnerability");
-	}
-
-	private static void setPlayerAttributes() {
-		if (playerAttributes.get("health") != 20f) {
-			getServerPlayerEntity().setHealth(playerAttributes.get("health"));
-		}
-		if (playerAttributes.get("hunger") != 20f) {
-			getServerPlayerEntity().getHungerManager().setFoodLevel(Math.round(playerAttributes.get("hunger")));
-		}
-		if (playerAttributes.get("saturation") != 20f) {
-			((HungerManagerAccessor) getServerPlayerEntity().getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
-		}
-	}
-
-	private static void openF3() {
-		try {
-			if (config.isF3Enabled()) {
-				getMC().options.debugEnabled = true;
-				log(Level.INFO, "Opened F3 menu");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static void openRecipeBook() {
-		try {
-			if (config.isRecipeBookEnabled()) {
-				getClientPlayerEntity().getRecipeBook().setGuiOpen(true);
-				Objects.requireNonNull(getMC().getNetworkHandler()).sendPacket(
-						new RecipeBookDataC2SPacket(true, true, false, false, false, false)
-				);
-				log(Level.INFO, "Opened recipe book");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void onSpawn() {
-		resetRandoms();
-		setPlayerInventory();
-		sendToNether();
-		setPlayerAttributes();
-		disableSpawnInvulnerability();
-		openF3();
-		openRecipeBook();
-	}
-
-	@Override
-	public void onInitialize() {
-
-	}
+            playerLog(Level.INFO, "Finished server side actions", serverPlayerEntity);
+        } else {
+            playerLog(Level.INFO, "Noverworld will not handle player", serverPlayerEntity);
+        }
+    }
 }

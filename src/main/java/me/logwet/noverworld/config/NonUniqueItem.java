@@ -1,8 +1,8 @@
 package me.logwet.noverworld.config;
 
 public class NonUniqueItem {
-    private String name;
-    private int[] attributes;
+    private final String name;
+    private final int[] attributes;
 
     public NonUniqueItem(String name, int[] attributes) {
         this.name = name;

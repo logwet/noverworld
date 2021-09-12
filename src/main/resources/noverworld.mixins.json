@@ -4,13 +4,20 @@
   "package": "me.logwet.noverworld.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "HungerManagerAccessor",
-    "ServerPlayerEntityAccessor"
+    "common.HungerManagerAccessor",
+    "common.MinecraftServerMixin",
+    "common.PlayerManagerMixin",
+    "common.ServerPlayerEntityAccessor"
   ],
   "client": [
-    "ClientPlayNetworkHandlerMixin",
-    "DebugHudMixin",
-    "MinecraftClientMixin"
+    "client.ClientPlayNetworkHandlerMixin",
+    "client.DebugHudMixin",
+    "client.IntegratedServerMixin",
+    "client.MinecraftClientAccessor",
+    "client.MinecraftClientMixin"
+  ],
+  "server": [
+    "server.MinecraftDedicatedServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
