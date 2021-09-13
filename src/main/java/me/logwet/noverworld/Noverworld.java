@@ -5,6 +5,9 @@ import com.google.gson.GsonBuilder;
 import me.logwet.noverworld.config.*;
 import me.logwet.noverworld.mixin.common.HungerManagerAccessor;
 import me.logwet.noverworld.mixin.common.ServerPlayerEntityAccessor;
+import me.logwet.noverworld.returntooverworld.MagmaRavineHandler;
+import me.logwet.noverworld.util.ItemsMapping;
+import me.logwet.noverworld.util.WeightedCollection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
@@ -15,6 +18,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
@@ -30,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
 public class Noverworld {
@@ -56,6 +61,8 @@ public class Noverworld {
     private static int[] possibleSpawnShifts;
     private static Map<String, Integer> spawnYHeightDistribution;
     private static Map<String, Float> playerAttributes;
+
+    private static final AtomicBoolean featureHandlersActive = new AtomicBoolean(false);
 
     public static void log(Level level, String message) {
         logger.log(level, "[Noverworld] " + message);
@@ -90,8 +97,24 @@ public class Noverworld {
         MS = ms;
     }
 
+    public static BlockPos getWorldSpawn() {
+        return getMS().getOverworld().getSpawnPos();
+    }
+
+    public static ChunkPos getWorldSpawnChunk() {
+        return new ChunkPos(getWorldSpawn());
+    }
+
     private static ServerWorld getNether() {
         return getMS().getWorld(World.NETHER);
+    }
+
+    public static boolean isFeatureHandlersActive() {
+        return featureHandlersActive.get();
+    }
+
+    private static void setFeatureHandlersActive(boolean b) {
+        featureHandlersActive.set(b);
     }
 
     private static void resetRandoms() {
@@ -347,6 +370,29 @@ public class Noverworld {
             playerLog(Level.INFO, "Finished server side actions", serverPlayerEntity);
         } else {
             playerLog(Level.INFO, "Noverworld will not handle player", serverPlayerEntity);
+        }
+    }
+
+    public static void onWorldGenStart() {
+        boolean worldIsNew = getMS().getOverworld().getTime() == 0;
+        setNewWorld(worldIsNew);
+
+        if (worldIsNew) {
+            setFeatureHandlersActive(true);
+            MagmaRavineHandler.reset();
+        }
+        log(Level.INFO, worldIsNew ? "Detected creation of a new world" : "Detected reopening of a previously created world");
+    }
+
+    public static void onWorldGenComplete() {
+        setFeatureHandlersActive(false);
+
+        if (isNewWorld()) {
+            if (MagmaRavineHandler.ifFoundViableBlock()) {
+                log(Level.INFO, "Found " + MagmaRavineHandler.getViableBlockCount() + " magma ravine blocks");
+                MagmaRavineHandler.convolveForSuitableArea();
+            }
+            log(Level.INFO, "World gen is complete");
         }
     }
 }

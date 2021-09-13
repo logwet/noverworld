@@ -7,7 +7,8 @@
     "common.HungerManagerAccessor",
     "common.MinecraftServerMixin",
     "common.PlayerManagerMixin",
-    "common.ServerPlayerEntityAccessor"
+    "common.ServerPlayerEntityAccessor",
+    "common.UnderwaterCaveCarverMixin"
   ],
   "client": [
     "client.ClientPlayNetworkHandlerMixin",
