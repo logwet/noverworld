@@ -3,14 +3,8 @@ package me.logwet.noverworld.returntooverworld;
 
 import me.logwet.noverworld.Noverworld;
 import me.logwet.noverworld.util.BitMatrix;
-import me.logwet.noverworld.util.MatrixToImageWriter;
 import net.minecraft.util.math.ChunkPos;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
