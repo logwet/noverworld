@@ -1,4 +1,6 @@
-package me.logwet.noverworld;
+package me.logwet.noverworld.util;
+
+import me.logwet.noverworld.Noverworld;
 
 import java.io.BufferedReader;
 import java.io.IOException;

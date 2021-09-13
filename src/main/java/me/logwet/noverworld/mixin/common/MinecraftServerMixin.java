@@ -3,7 +3,6 @@ package me.logwet.noverworld.mixin.common;
 import me.logwet.noverworld.Noverworld;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.WorldGenerationProgressListener;
-import org.apache.logging.log4j.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,8 +19,11 @@ public class MinecraftServerMixin {
             method = "prepareStartRegion"
     )
     private void prepareStartRegion(WorldGenerationProgressListener worldGenerationProgressListener, CallbackInfo ci) {
-        boolean worldIsNew = Noverworld.getMS().getOverworld().getTime() == 0;
-        Noverworld.setNewWorld(worldIsNew);
-        Noverworld.log(Level.INFO, worldIsNew ? "Detected creation of a new world" : "Detected reopening of a previously created world");
+        Noverworld.onWorldGenStart();
+    }
+
+    @Inject(at = @At("TAIL"), method = "loadWorld")
+    private void loadWorld(CallbackInfo ci) {
+        Noverworld.onWorldGenComplete();
     }
 }

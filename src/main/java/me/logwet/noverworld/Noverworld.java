@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import me.logwet.noverworld.config.*;
 import me.logwet.noverworld.mixin.common.HungerManagerAccessor;
 import me.logwet.noverworld.mixin.common.ServerPlayerEntityAccessor;
+import me.logwet.noverworld.util.ItemsMapping;
+import me.logwet.noverworld.util.WeightedCollection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
@@ -15,6 +17,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
@@ -88,6 +91,14 @@ public class Noverworld {
     public static void setMS(MinecraftServer ms) {
         setInitializedPlayers(new HashSet<>());
         MS = ms;
+    }
+
+    public static BlockPos getWorldSpawn() {
+        return getMS().getOverworld().getSpawnPos();
+    }
+
+    public static ChunkPos getWorldSpawnChunk() {
+        return new ChunkPos(getWorldSpawn());
     }
 
     private static ServerWorld getNether() {
@@ -347,6 +358,23 @@ public class Noverworld {
             playerLog(Level.INFO, "Finished server side actions", serverPlayerEntity);
         } else {
             playerLog(Level.INFO, "Noverworld will not handle player", serverPlayerEntity);
+        }
+    }
+
+    public static void onWorldGenStart() {
+        boolean worldIsNew = getMS().getOverworld().getTime() == 0;
+        setNewWorld(worldIsNew);
+
+        if (worldIsNew) {
+
+        }
+        log(Level.INFO, worldIsNew ? "Detected creation of a new world" : "Detected reopening of a previously created world");
+    }
+
+    public static void onWorldGenComplete() {
+        if (isNewWorld()) {
+
+            log(Level.INFO, "World gen is complete");
         }
     }
 }
