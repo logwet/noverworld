@@ -390,7 +390,13 @@ public class Noverworld {
         if (isNewWorld()) {
             if (MagmaRavineHandler.ifFoundViableBlock()) {
                 log(Level.INFO, "Found " + MagmaRavineHandler.getViableBlockCount() + " magma ravine blocks");
-                MagmaRavineHandler.convolveForSuitableArea();
+                try {
+                    int[] portalPos = MagmaRavineHandler.searchForSuitableArea();
+                    System.out.println(Arrays.toString(portalPos));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
             log(Level.INFO, "World gen is complete");
         }

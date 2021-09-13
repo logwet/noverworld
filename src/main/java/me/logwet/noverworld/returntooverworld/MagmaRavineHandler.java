@@ -3,14 +3,20 @@ package me.logwet.noverworld.returntooverworld;
 
 import me.logwet.noverworld.Noverworld;
 import me.logwet.noverworld.util.BitMatrix;
+import me.logwet.noverworld.util.MatrixToImageWriter;
 import net.minecraft.util.math.ChunkPos;
 
-import java.awt.image.ConvolveOp;
-import java.awt.image.Kernel;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MagmaRavineHandler extends FeatureHandler {
     public static final int SEARCH_OFFSET = 10;
+    private static final int SEARCH_BOX_SIZE = 4;
 
     private static final AtomicBoolean active = new AtomicBoolean(false);
 
@@ -20,17 +26,6 @@ public class MagmaRavineHandler extends FeatureHandler {
 
     private static int xBlockOffset;
     private static int zBlockOffset;
-
-    private static final float[] mat = new float[]{
-            1f/(255f*16f), 1f/(255f*16f), 1f/(255f*16f), 1f/(255f*16f),
-            1f/(255f*16f), 1f/(255f*16f), 1f/(255f*16f), 1f/(255f*16f),
-            1f/(255f*16f), 1f/(255f*16f), 1f/(255f*16f), 1f/(255f*16f),
-            1f/(255f*16f), 1f/(255f*16f), 1f/(255f*16f), 1f/(255f*16f)
-    };
-    private static final Kernel convolveKernel = new Kernel(4, 4, mat);
-    private static final ConvolveOp convolver = new ConvolveOp(convolveKernel);
-
-
 
     public static boolean isActive() {
         return active.get();
@@ -81,52 +76,73 @@ public class MagmaRavineHandler extends FeatureHandler {
         viableBlockCount--;
     }
 
-    public static void convolveForSuitableArea() {
+    public static int[] searchForSuitableArea() throws Exception {
         /**
          * @author Al
          * Very wrinkly brain smart guy
          * Dunno how most of this works tbh
          *
          * 2D Range Sum Query
+         * Amortizing the range sum
+         * then query it for a 4x4 region for portal placement
          */
 
-        int[] params = viableBlocks.getEnclosingRectangle();
+        int[] params = Objects.requireNonNull(viableBlocks.getEnclosingRectangle());
         int x = params[0];
         int y = params[1];
         int w = params[2];
         int h = params[3];
 
-        int[][] sums = new int[h][w];
-        sums[0][0] = viableBlocks.get(x, y) ? 1 : 0;
+        int[][] sumMatrix = new int[h][w];
+        sumMatrix[0][0] = viableBlocks.get(x, y) ? 1 : 0;
+
+        int bit;
 
         for (int i = 1; i < h; i++) {
-            int bit = viableBlocks.get(x, i + y) ? 1 : 0;
-            sums[i][0] = sums[i - 1][0] + bit;
+            bit = viableBlocks.get(x, i + y) ? 1 : 0;
+            sumMatrix[i][0] = sumMatrix[i - 1][0] + bit;
         }
 
         for (int i = 1; i < w; i++) {
-            int bit = viableBlocks.get(x + i, y) ? 1 : 0;
-            sums[0][i] = sums[0][i - 1] + bit;
+            bit = viableBlocks.get(x + i, y) ? 1 : 0;
+            sumMatrix[0][i] = sumMatrix[0][i - 1] + bit;
         }
 
         for (int i = 1; i < h; i++) {
             for (int j = 1; j < w; j++) {
-
-                int bit = viableBlocks.get(x + j, y + i) ? 1 : 0;
-                if (viableBlocks.get(j + x, i + y)) {
-                    System.out.println();
-                }
-                sums[i][j] = sums[i - 1][j] + sums[i][j - 1] - sums[i - 1][j - 1] + bit;
+                bit = viableBlocks.get(x + j, y + i) ? 1 : 0;
+                sumMatrix[i][j] = sumMatrix[i - 1][j] + sumMatrix[i][j - 1] - sumMatrix[i - 1][j - 1] + bit;
             }
         }
 
-//        BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(viableBlocks);
-//        File outputFile = Paths.get("config/image1.png").toFile();
-//        try {
-//            ImageIO.write(bufferedImage, "png", outputFile);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        int closestDistance = Integer.MAX_VALUE;
+        int bestX = -1, bestZ = -1, distanceFromSpawn;
+
+        int middlePos = SEARCH_OFFSET * 16 + 8;
+
+        for (int i = SEARCH_BOX_SIZE; i < h; i++) {
+            for (int j = SEARCH_BOX_SIZE; j < w; j++) {
+                int sum4x4 = sumMatrix[i][j] - sumMatrix[i - SEARCH_BOX_SIZE][j] - sumMatrix[i][j - SEARCH_BOX_SIZE] +
+                        sumMatrix[i - SEARCH_BOX_SIZE][j - SEARCH_BOX_SIZE];
+                if (sum4x4 == SEARCH_BOX_SIZE * SEARCH_BOX_SIZE) {
+                    int tX = x + j;
+                    int tZ = y + i;
+
+                    distanceFromSpawn = (tX - middlePos)*(tX - middlePos) + (tZ - middlePos)*(tZ - middlePos);
+
+                    if (distanceFromSpawn < closestDistance) {
+                        closestDistance = distanceFromSpawn;
+                        bestX = tX;
+                        bestZ = tZ;
+                    }
+                }
+            }
+        }
+
+        if (bestX >=0 && bestZ >= 0) {
+            return new int[]{bestX-xBlockOffset, bestZ-zBlockOffset};
+        }
+        throw new Exception("Unable to find location for RTO portal");
     }
 
 }
