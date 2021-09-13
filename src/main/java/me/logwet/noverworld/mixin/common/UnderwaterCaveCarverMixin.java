@@ -4,7 +4,6 @@ import me.logwet.noverworld.Noverworld;
 import me.logwet.noverworld.returntooverworld.MagmaRavineHandler;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.Heightmap;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.carver.Carver;
 import net.minecraft.world.gen.carver.UnderwaterCaveCarver;
@@ -35,10 +34,13 @@ public class UnderwaterCaveCarverMixin {
                     && (mainChunkZ >= spawnChunk.z-MagmaRavineHandler.SEARCH_OFFSET &&
                     mainChunkZ <= spawnChunk.z+MagmaRavineHandler.SEARCH_OFFSET)) {
 
-                if (chunk.sampleHeightmap(Heightmap.Type.OCEAN_FLOOR, x, z) == 10) {
-                    System.out.println("Underwater ravine  " + x +  " " + z);
-                    MagmaRavineHandler.setViableBlockAtIndex(x, z);
-                }
+//                if (chunk.sampleHeightmap(Heightmap.Type.OCEAN_FLOOR, x, z) == 10) {
+//                    System.out.println("Underwater ravine  " + x +  " " + z);
+//                    MagmaRavineHandler.setViableBlockAtIndex(x, z);
+//                }
+
+                System.out.println("Underwater ravine  " + x +  " " + z);
+                MagmaRavineHandler.setViableBlockAtIndex(x, z);
             }
         }
     }
