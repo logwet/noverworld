@@ -1,14 +1,4 @@
 {
-  "spawnShiftRange": [
-    50,
-    150
-  ],
-  "spawnYHeightDistribution": {
-    "7-13": 80,
-    "14-59": 5,
-    "60-75": 10,
-    "76-90": 5
-  },
   "playerAttributes": {
     "health": 20.0,
     "hunger": 20.0,

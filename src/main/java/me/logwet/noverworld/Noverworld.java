@@ -5,11 +5,14 @@ import com.google.gson.GsonBuilder;
 import me.logwet.noverworld.config.*;
 import me.logwet.noverworld.mixin.common.HungerManagerAccessor;
 import me.logwet.noverworld.mixin.common.ServerPlayerEntityAccessor;
+import me.logwet.noverworld.mixin.common.StructureManagerInvoker;
 import me.logwet.noverworld.returntooverworld.MagmaRavineHandler;
 import me.logwet.noverworld.util.ItemsMapping;
-import me.logwet.noverworld.util.WeightedCollection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -17,9 +20,13 @@ import net.minecraft.item.Wearable;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.Structure;
+import net.minecraft.structure.StructurePlacementData;
+import net.minecraft.text.LiteralText;
+import net.minecraft.util.*;
+import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -35,7 +42,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.IntStream;
 
 public class Noverworld {
     public static final String VERSION = FabricLoader.getInstance().getModContainer("noverworld").get().getMetadata().getVersion().getFriendlyString();
@@ -54,13 +60,16 @@ public class Noverworld {
     private static boolean newWorld = false;
     private static Set<UUID> initializedPlayers;
     private static MinecraftServer MS;
-    private static Random playerRandomInstance;
-    private static WeightedCollection<int[]> spawnYHeightSets;
+    private static Random randomInstance;
+    private static float spawnYaw;
     private static Map<String, int[]> uniqueFixedConfigItems;
     private static List<NonUniqueItem> nonUniqueFixedConfigItems;
-    private static int[] possibleSpawnShifts;
-    private static Map<String, Integer> spawnYHeightDistribution;
     private static Map<String, Float> playerAttributes;
+
+    private static final String[] portalStructureNames = new String[]{"portal_1"};
+    private static final Map<String, Structure> portalStructureMap = new HashMap<>();
+    private static BlockPos portalPos;
+    private static boolean RTOFound = false;
 
     private static final AtomicBoolean featureHandlersActive = new AtomicBoolean(false);
 
@@ -97,16 +106,20 @@ public class Noverworld {
         MS = ms;
     }
 
-    public static BlockPos getWorldSpawn() {
-        return getMS().getOverworld().getSpawnPos();
-    }
-
-    public static ChunkPos getWorldSpawnChunk() {
-        return new ChunkPos(getWorldSpawn());
+    private static ServerWorld getOverworld() {
+        return getMS().getOverworld();
     }
 
     private static ServerWorld getNether() {
         return getMS().getWorld(World.NETHER);
+    }
+
+    public static BlockPos getWorldSpawn() {
+        return getOverworld().getSpawnPos();
+    }
+
+    public static ChunkPos getWorldSpawnChunk() {
+        return new ChunkPos(getWorldSpawn());
     }
 
     public static boolean isFeatureHandlersActive() {
@@ -117,8 +130,8 @@ public class Noverworld {
         featureHandlersActive.set(b);
     }
 
-    private static void resetRandoms() {
-        long rawSeed = Noverworld.getMS().getOverworld().getSeed();
+    private static Random newRandomInstance() {
+        long rawSeed = Objects.requireNonNull(getOverworld().getSeed());
         String rawSeedString = Long.toString(rawSeed);
         long seed;
         StringBuilder seedString = new StringBuilder();
@@ -139,26 +152,25 @@ public class Noverworld {
             seed = rawSeed;
         }
 
-        playerRandomInstance = new Random(seed);
+        Random returnRandom = new Random(seed);
+        int j = returnRandom.nextInt(50) + 50;
+        for (int i = 0; i < j; i++) {
+            returnRandom.nextInt();
+        }
 
-        spawnYHeightSets = new WeightedCollection<>(playerRandomInstance);
+        return returnRandom;
+    }
 
-        spawnYHeightDistribution.forEach((rawRange, weight) -> {
-            String[] stringRange = rawRange.split("-");
-            int[] range = new int[]{Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])};
-            spawnYHeightSets.add(weight, IntStream.range(range[0], range[1]).toArray());
-        });
+    private static void resetRandoms() {
+        randomInstance = newRandomInstance();
+
+        spawnYaw = getRandomAngle();
 
         log(Level.INFO, "Reset randoms using world seed");
     }
 
-    private static int getSpawnYHeight() {
-        int[] heightSet = spawnYHeightSets.next();
-        return heightSet[playerRandomInstance.nextInt(heightSet.length)];
-    }
-
     private static float getRandomAngle() {
-        return (float) Math.floor((-180f + playerRandomInstance.nextFloat() * 360f) * 100) / 100;
+        return (float) Math.floor((-180f + randomInstance.nextFloat() * 360f) * 100) / 100;
     }
 
     public static void readFixedConfigs() {
@@ -167,10 +179,6 @@ public class Noverworld {
 
         uniqueFixedConfigItems = fixedConfig.getUniqueItems();
         nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
-
-        possibleSpawnShifts = IntStream.range(fixedConfig.getSpawnShiftRange()[0], fixedConfig.getSpawnShiftRange()[1]).toArray();
-
-        spawnYHeightDistribution = fixedConfig.getSpawnYHeightDistribution();
 
         playerAttributes = fixedConfig.getPlayerAttributes();
 
@@ -302,38 +310,95 @@ public class Noverworld {
         playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
     }
 
-    private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
-        // The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
-        serverPlayerEntity.yaw = getRandomAngle();
+    private static void fillWater(int x, int z){
+        final Block replaceBlock = Blocks.WATER;
 
-        float spawnShiftAngle = getRandomAngle();
-        float spawnShiftLength;
+        int fx = x + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
+        int fz = z + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
+        int y = 13;
+        int fy = 62;
 
-        try {
-            spawnShiftLength = (float) possibleSpawnShifts[playerRandomInstance.nextInt(possibleSpawnShifts.length)];
-        } catch (Exception e) {
-            spawnShiftLength = 0;
+        Iterator blockIterator = BlockPos.iterate(x, y, z, fx, fy, fz).iterator();
+        BlockPos blockPos;
+
+        while(blockIterator.hasNext()) {
+            blockPos = (BlockPos) blockIterator.next();
+            BlockEntity blockEntity = getOverworld().getBlockEntity(blockPos);
+            Clearable.clear(blockEntity);
+            getOverworld().setBlockState(blockPos, replaceBlock.getDefaultState());
         }
 
-        float spawnShiftAngleRadians = spawnShiftAngle * 0.017453292F;
+        blockIterator = BlockPos.iterate(x, y, z, fx, fy, fz).iterator();
+        while(blockIterator.hasNext()) {
+            blockPos = (BlockPos) blockIterator.next();
+            getOverworld().updateNeighbors(blockPos, replaceBlock);
+        }
+    }
 
-        BlockPos oldPos = serverPlayerEntity.getBlockPos();
-        int yHeight = getSpawnYHeight();
+    private static void genRTOPortal(int x, int z) {
+        for (String structureName : portalStructureNames) {
+            portalStructureMap.putIfAbsent(structureName,
+                    ((StructureManagerInvoker) getMS().getStructureManager())
+                            .invokeReadStructure(
+                                    Noverworld.class.getResourceAsStream
+                                            ("/data/noverworld/structures/" + structureName + ".nbt")
+                            ));
+        }
 
-        BlockPos pos = new BlockPos(
-                oldPos.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
-                yHeight,
-                oldPos.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
-        );
+        String portalStructureName = Util.getRandom(portalStructureNames, randomInstance);
+        Structure portalStructure = portalStructureMap.get(portalStructureName);
+        /*
+         * Yeah I know this method of grabbing the schematic file is obscenely stupid, but trying to access it using
+         * the inbuilt minecraft structure/resource managers just didn't work.
+         */
 
-        serverPlayerEntity.setPos(pos.getX(), pos.getY(), pos.getZ());
-        serverPlayerEntity.setInNetherPortal(pos);
 
-        playerLog(Level.INFO, "Spawn shifted " + spawnShiftLength + " blocks on yaw " + spawnShiftAngle, serverPlayerEntity);
-        playerLog(Level.INFO, "Attemping spawn at " + pos + " with yaw " + serverPlayerEntity.yaw, serverPlayerEntity);
+        BlockMirror mirror = Util.getRandom(BlockMirror.values(), randomInstance);
+        BlockRotation rotation = BlockRotation.random(randomInstance);
+
+        BlockPos portalPos = new BlockPos(x, 8, z);
+        StructurePlacementData structurePlacementData = (new StructurePlacementData()).setMirror(mirror).setRotation(rotation).setIgnoreEntities(true).setChunkPosition((ChunkPos)null);
+
+        BlockBox adjustedBoundingBox = portalStructure.calculateBoundingBox(structurePlacementData, portalPos);
+        BlockPos adjustedPortalPos = portalPos.add(x-adjustedBoundingBox.minX, 0, z-adjustedBoundingBox.minZ);
+
+        portalStructure.place(getOverworld(), adjustedPortalPos, structurePlacementData, randomInstance);
+        fillWater(x, z);
+
+        int spawnShift = MagmaRavineHandler.SEARCH_BOX_SIZE/2-1;
+
+        Noverworld.portalPos = Structure.transformAround(
+                        new BlockPos(spawnShift, 9, spawnShift),
+                        mirror, rotation, new BlockPos(0, 0, 0))
+                .add(2*x-adjustedBoundingBox.minX, 0, 2*z-adjustedBoundingBox.minZ);
+
+        log(Level.INFO, "Generated portal in overworld at " + portalPos.toShortString());
+        RTOFound = true;
+    }
+
+    private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
+        // The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
+        serverPlayerEntity.yaw = spawnYaw;
+
+        if (!RTOFound) {
+            portalPos = getWorldSpawn();
+        }
+
+        serverPlayerEntity.setPos(portalPos.getX(), portalPos.getY(), portalPos.getZ());
+        serverPlayerEntity.setInNetherPortal(portalPos);
+
+        playerLog(Level.INFO, "Attemping spawn at " + portalPos.toShortString() + " with yaw " + serverPlayerEntity.yaw, serverPlayerEntity);
 
         serverPlayerEntity.changeDimension(getNether());
         serverPlayerEntity.netherPortalCooldown = serverPlayerEntity.getDefaultNetherPortalCooldown();
+
+        if (!RTOFound) {
+            serverPlayerEntity.sendMessage(new LiteralText("Unable to find RTO portal! Using world spawn.").formatted(Formatting.RED), true);
+            serverPlayerEntity.sendMessage(new LiteralText("[Noverworld] Unable to find RTO portal! Using world spawn.").formatted(Formatting.RED), false);
+        } else {
+            serverPlayerEntity.sendMessage(new LiteralText("Found and generated RTO portal!").formatted(Formatting.GREEN), true);
+            serverPlayerEntity.sendMessage(new LiteralText("[Noverworld] Found and generated RTO portal!").formatted(Formatting.GREEN), false);
+        }
 
         playerLog(Level.INFO, "Sent to nether", serverPlayerEntity);
     }
@@ -361,7 +426,6 @@ public class Noverworld {
         if (isNewWorld() && getInitializedPlayers().add(serverPlayerEntity.getUuid())) {
             playerLog(Level.INFO, "Player connected and recognised", serverPlayerEntity);
 
-            resetRandoms();
             setPlayerInventory(serverPlayerEntity);
             sendToNether(serverPlayerEntity);
             setPlayerAttributes(serverPlayerEntity);
@@ -374,10 +438,15 @@ public class Noverworld {
     }
 
     public static void onWorldGenStart() {
-        boolean worldIsNew = getMS().getOverworld().getTime() == 0;
+        boolean worldIsNew = getOverworld().getTime() == 0;
         setNewWorld(worldIsNew);
 
+        portalPos = null;
+        RTOFound = false;
+
         if (worldIsNew) {
+            resetRandoms();
+
             setFeatureHandlersActive(true);
             MagmaRavineHandler.reset();
         }
@@ -390,10 +459,14 @@ public class Noverworld {
         if (isNewWorld()) {
             if (MagmaRavineHandler.ifFoundViableBlock()) {
                 log(Level.INFO, "Found " + MagmaRavineHandler.getViableBlockCount() + " magma ravine blocks");
+
+                portalPos = null;
+
                 try {
-                    int[] portalPos = MagmaRavineHandler.searchForSuitableArea();
-                    if (!Objects.isNull(portalPos)) {
-                        log(Level.INFO, "Found portal pos at " + Arrays.toString(portalPos));
+                    int[] foundPortalPos = MagmaRavineHandler.searchForSuitableArea();
+                    if (!Objects.isNull(foundPortalPos)) {
+                        log(Level.INFO, "Found portal pos at " + Arrays.toString(foundPortalPos));
+                        genRTOPortal(foundPortalPos[0], foundPortalPos[1]);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

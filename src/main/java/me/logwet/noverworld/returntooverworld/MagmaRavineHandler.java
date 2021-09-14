@@ -9,9 +9,9 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MagmaRavineHandler extends FeatureHandler {
-    public static final int SEARCH_OFFSET = 10;
+    public static final int SEARCH_OFFSET = 11;
     private static final int MATRIX_DIM = (SEARCH_OFFSET * 2 + 1) * 16;
-    private static final int SEARCH_BOX_SIZE = 4;
+    public static final int SEARCH_BOX_SIZE = 4;
 
     private static final AtomicBoolean active = new AtomicBoolean(false);
 
@@ -42,7 +42,7 @@ public class MagmaRavineHandler extends FeatureHandler {
     }
 
     public static boolean ifFoundViableBlock() {
-        return getViableBlockCount() > 0;
+        return getViableBlockCount() >= 16;
     }
 
     public static void reset() {
@@ -149,7 +149,7 @@ public class MagmaRavineHandler extends FeatureHandler {
         }
 
         if (bestX >=0 && bestZ >= 0) {
-            return new int[]{bestX-xBlockOffset, bestZ-zBlockOffset};
+            return new int[]{bestX-xBlockOffset-SEARCH_BOX_SIZE, bestZ-zBlockOffset-SEARCH_BOX_SIZE};
         }
         return null;
     }
