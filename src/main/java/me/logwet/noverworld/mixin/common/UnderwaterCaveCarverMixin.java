@@ -34,7 +34,7 @@ public class UnderwaterCaveCarverMixin {
                     && (mainChunkZ >= spawnChunk.z-MagmaRavineHandler.SEARCH_OFFSET &&
                     mainChunkZ <= spawnChunk.z+MagmaRavineHandler.SEARCH_OFFSET)) {
 
-                System.out.println("Underwater ravine  " + x +  " " + z);
+//                System.out.println("Underwater ravine  " + x +  " " + z);
                 MagmaRavineHandler.setViableBlockAtIndex(x, z);
             }
         }

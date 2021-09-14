@@ -392,7 +392,9 @@ public class Noverworld {
                 log(Level.INFO, "Found " + MagmaRavineHandler.getViableBlockCount() + " magma ravine blocks");
                 try {
                     int[] portalPos = MagmaRavineHandler.searchForSuitableArea();
-                    System.out.println(Arrays.toString(portalPos));
+                    if (!Objects.isNull(portalPos)) {
+                        log(Level.INFO, "Found portal pos at " + Arrays.toString(portalPos));
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

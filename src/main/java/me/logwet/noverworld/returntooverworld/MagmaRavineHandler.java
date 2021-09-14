@@ -10,11 +10,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MagmaRavineHandler extends FeatureHandler {
     public static final int SEARCH_OFFSET = 10;
+    private static final int MATRIX_DIM = (SEARCH_OFFSET * 2 + 1) * 16;
     private static final int SEARCH_BOX_SIZE = 4;
 
     private static final AtomicBoolean active = new AtomicBoolean(false);
 
-    private static BitMatrix viableBlocks;
+    /**
+     * BitMatrix from zxing is used because it is memory efficient. The entire 336x336 matrix is under 15 kilobytes.
+     */
+    private static final BitMatrix viableBlocks = new BitMatrix(MATRIX_DIM);
 
     private static int viableBlockCount;
 
@@ -42,8 +46,7 @@ public class MagmaRavineHandler extends FeatureHandler {
     }
 
     public static void reset() {
-        int dim = (SEARCH_OFFSET * 2 + 1) * 16;
-        viableBlocks = new BitMatrix(dim);
+        viableBlocks.clear();
         viableBlockCount = 0;
         genOffsets();
         setActive(true);
@@ -65,46 +68,53 @@ public class MagmaRavineHandler extends FeatureHandler {
         return viableBlocks.get(x + xBlockOffset, z + zBlockOffset);
     }
 
-    public static void flipViableBlockAtIndex(int x, int z) {
-        viableBlocks.flip(x + xBlockOffset, z + zBlockOffset);
-        viableBlockCount--;
-    }
-
-    public static int[] searchForSuitableArea() throws Exception {
-        /**
-         * @author Al
-         * Very wrinkly brain smart guy
-         * Dunno how most of this works tbh
-         *
-         * 2D Range Sum Query
-         * Amortizing the range sum
-         * then query it for a 4x4 region for portal placement
-         */
-
+    /**
+     * @author Al
+     * Very wrinkly brain smart guy
+     * Dunno how most of this works tbh
+     *
+     * 2D Range Sum Query (immutable) https://leetcode.com/problems/range-sum-query-2d-immutable/
+     * Amortizing the range sum
+     * then query it for a 4x4 region for portal placement
+     *
+     * This algorithm is pretty fast. Takes roughly 2 ms per 500 blocks of ravine detected.
+     *
+     * @return array containing x and z of where to place
+     */
+    public static int[] searchForSuitableArea() {
         int[] params = Objects.requireNonNull(viableBlocks.getEnclosingRectangle());
         int x = params[0];
-        int y = params[1];
+        int z = params[1];
         int w = params[2];
         int h = params[3];
 
-        int[][] sumMatrix = new int[h][w];
-        sumMatrix[0][0] = viableBlocks.get(x, y) ? 1 : 0;
+        /**
+         * sumMatrix will at most be 446 kilobytes
+         */
+        final int[][] sumMatrix = new int[h][w];
+
+        sumMatrix[0][0] = viableBlocks.get(x, z) ? 1 : 0;
 
         int bit;
 
-        for (int i = 1; i < h; i++) {
-            bit = viableBlocks.get(x, i + y) ? 1 : 0;
+        int i, j;
+
+        /**
+         * Amortize the range sum matrix
+         */
+        for (i = 1; i < h; i++) {
+            bit = viableBlocks.get(x, z + i) ? 1 : 0;
             sumMatrix[i][0] = sumMatrix[i - 1][0] + bit;
         }
 
-        for (int i = 1; i < w; i++) {
-            bit = viableBlocks.get(x + i, y) ? 1 : 0;
+        for (i = 1; i < w; i++) {
+            bit = viableBlocks.get(x + i, z) ? 1 : 0;
             sumMatrix[0][i] = sumMatrix[0][i - 1] + bit;
         }
 
-        for (int i = 1; i < h; i++) {
-            for (int j = 1; j < w; j++) {
-                bit = viableBlocks.get(x + j, y + i) ? 1 : 0;
+        for (i = 1; i < h; i++) {
+            for (j = 1; j < w; j++) {
+                bit = viableBlocks.get(x + j, z + i) ? 1 : 0;
                 sumMatrix[i][j] = sumMatrix[i - 1][j] + sumMatrix[i][j - 1] - sumMatrix[i - 1][j - 1] + bit;
             }
         }
@@ -114,13 +124,18 @@ public class MagmaRavineHandler extends FeatureHandler {
 
         int middlePos = SEARCH_OFFSET * 16 + 8;
 
-        for (int i = SEARCH_BOX_SIZE; i < h; i++) {
-            for (int j = SEARCH_BOX_SIZE; j < w; j++) {
-                int sum4x4 = sumMatrix[i][j] - sumMatrix[i - SEARCH_BOX_SIZE][j] - sumMatrix[i][j - SEARCH_BOX_SIZE] +
-                        sumMatrix[i - SEARCH_BOX_SIZE][j - SEARCH_BOX_SIZE];
-                if (sum4x4 == SEARCH_BOX_SIZE * SEARCH_BOX_SIZE) {
-                    int tX = x + j;
-                    int tZ = y + i;
+        int summedSearchBox, tX, tZ;
+
+        /**
+         * Iterate through the generated 2d range sum to find a 4x4 area
+         */
+        for (i = SEARCH_BOX_SIZE; i < h; i++) {
+            for (j = SEARCH_BOX_SIZE; j < w; j++) {
+                summedSearchBox = sumMatrix[i][j] - sumMatrix[i - SEARCH_BOX_SIZE][j] -
+                        sumMatrix[i][j - SEARCH_BOX_SIZE] + sumMatrix[i - SEARCH_BOX_SIZE][j - SEARCH_BOX_SIZE];
+                if (summedSearchBox == SEARCH_BOX_SIZE * SEARCH_BOX_SIZE) {
+                    tX = x + j;
+                    tZ = z + i;
 
                     distanceFromSpawn = (tX - middlePos)*(tX - middlePos) + (tZ - middlePos)*(tZ - middlePos);
 
@@ -136,7 +151,7 @@ public class MagmaRavineHandler extends FeatureHandler {
         if (bestX >=0 && bestZ >= 0) {
             return new int[]{bestX-xBlockOffset, bestZ-zBlockOffset};
         }
-        throw new Exception("Unable to find location for RTO portal");
+        return null;
     }
 
 }
