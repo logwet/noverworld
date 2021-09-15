@@ -6,7 +6,7 @@ import me.logwet.noverworld.config.*;
 import me.logwet.noverworld.mixin.common.HungerManagerAccessor;
 import me.logwet.noverworld.mixin.common.ServerPlayerEntityAccessor;
 import me.logwet.noverworld.mixin.common.StructureManagerInvoker;
-import me.logwet.noverworld.returntooverworld.MagmaRavineHandler;
+import me.logwet.noverworld.returntooverworld.MagmaEntryHandler;
 import me.logwet.noverworld.util.ItemsMapping;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -351,8 +351,8 @@ public class Noverworld {
 
     private static void fillFakeWaterAccess(int x, int z){
         final Block replaceBlock = Blocks.WATER;
-        int fx = x + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
-        int fz = z + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
+        int fx = x + MagmaEntryHandler.SEARCH_BOX_SIZE-1;
+        int fz = z + MagmaEntryHandler.SEARCH_BOX_SIZE-1;
         int y = 13;
         int fy = 62;
 
@@ -360,8 +360,8 @@ public class Noverworld {
     }
 
     private static void fillFakePortalBase(int x, int z) {
-        int fx = x + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
-        int fz = z + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
+        int fx = x + MagmaEntryHandler.SEARCH_BOX_SIZE-1;
+        int fz = z + MagmaEntryHandler.SEARCH_BOX_SIZE-1;
         int y = 10;
         int fy = 10;
 
@@ -428,7 +428,7 @@ public class Noverworld {
         portalStructure.place(getOverworld(), adjustedPortalPos, structurePlacementData, randomInstance);
         fillFakeWaterAccess(x, z);
 
-        int spawnShift = MagmaRavineHandler.SEARCH_BOX_SIZE/2-1;
+        int spawnShift = MagmaEntryHandler.SEARCH_BOX_SIZE/2-1;
 
         Noverworld.portalPos = Structure.transformAround(
                         new BlockPos(spawnShift, 9, spawnShift),
@@ -505,7 +505,7 @@ public class Noverworld {
             resetRandoms();
 
             setFeatureHandlersActive(true);
-            MagmaRavineHandler.reset();
+            MagmaEntryHandler.reset();
         }
         log(Level.INFO, worldIsNew ? "Detected creation of a new world" : "Detected reopening of a previously created world");
     }
@@ -520,10 +520,10 @@ public class Noverworld {
             naturalRTOFound = false;
 
             try {
-                if (MagmaRavineHandler.ifFoundViableBlock()) {
-                    log(Level.INFO, "Found " + MagmaRavineHandler.getViableBlockCount() + " magma ravine blocks");
+                if (MagmaEntryHandler.ifFoundViableBlocks()) {
+                    log(Level.INFO, "Found " + MagmaEntryHandler.getViableBlockCount() + " magma ravine blocks");
 
-                    int[] foundPortalPos = MagmaRavineHandler.searchForSuitableArea();
+                    int[] foundPortalPos = MagmaEntryHandler.searchForSuitableArea();
                     if (naturalRTOFound = !Objects.isNull(foundPortalPos)) {
                         log(Level.INFO, "Found portal pos at " + Arrays.toString(foundPortalPos));
                         genRTOPortal(foundPortalPos[0], foundPortalPos[1]);
