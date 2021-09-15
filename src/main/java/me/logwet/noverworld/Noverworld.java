@@ -28,9 +28,12 @@ import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.Biomes;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -69,7 +72,7 @@ public class Noverworld {
     private static final String[] portalStructureNames = new String[]{"portal_1"};
     private static final Map<String, Structure> portalStructureMap = new HashMap<>();
     private static BlockPos portalPos;
-    private static boolean RTOFound = false;
+    private static boolean naturalRTOFound = false;
 
     private static final AtomicBoolean featureHandlersActive = new AtomicBoolean(false);
 
@@ -310,32 +313,67 @@ public class Noverworld {
         playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
     }
 
-    private static void fillWater(int x, int z){
-        final Block replaceBlock = Blocks.WATER;
+    private static void filLArea(int x, int fx, int y, int fy, int z, int fz, Block replaceBlock, @Nullable Double chance, @Nullable Block replaceBlock2, @Nullable Boolean update) {
+        Iterator<BlockPos> blockIterator = BlockPos.iterate(x, y, z, fx, fy, fz).iterator();
 
+        BlockPos blockPos;
+
+        Block changeBlock;
+
+        while(blockIterator.hasNext()) {
+            blockPos = blockIterator.next();
+
+            BlockEntity blockEntity = getOverworld().getBlockEntity(blockPos);
+            Clearable.clear(blockEntity);
+
+            if (Objects.isNull(chance)) {
+                changeBlock = replaceBlock;
+            } else {
+                float f = randomInstance.nextFloat();
+                if ((double)f < chance) {
+                    changeBlock = replaceBlock2;
+                } else {
+                    changeBlock = replaceBlock;
+                }
+            }
+
+            getOverworld().setBlockState(blockPos, Objects.requireNonNull(changeBlock).getDefaultState());
+            if (Boolean.TRUE.equals(update)) getOverworld().getBlockTickScheduler().schedule(blockPos, changeBlock, 0);
+
+        }
+
+        blockIterator = BlockPos.iterate(x, y, z, fx, fy, fz).iterator();
+        while(blockIterator.hasNext()) {
+            blockPos = blockIterator.next();
+            getOverworld().updateNeighbors(blockPos, replaceBlock);
+        }
+    }
+
+    private static void fillFakeWaterAccess(int x, int z){
+        final Block replaceBlock = Blocks.WATER;
         int fx = x + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
         int fz = z + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
         int y = 13;
         int fy = 62;
 
-        Iterator blockIterator = BlockPos.iterate(x, y, z, fx, fy, fz).iterator();
-        BlockPos blockPos;
-
-        while(blockIterator.hasNext()) {
-            blockPos = (BlockPos) blockIterator.next();
-            BlockEntity blockEntity = getOverworld().getBlockEntity(blockPos);
-            Clearable.clear(blockEntity);
-            getOverworld().setBlockState(blockPos, replaceBlock.getDefaultState());
-        }
-
-        blockIterator = BlockPos.iterate(x, y, z, fx, fy, fz).iterator();
-        while(blockIterator.hasNext()) {
-            blockPos = (BlockPos) blockIterator.next();
-            getOverworld().updateNeighbors(blockPos, replaceBlock);
-        }
+        filLArea(x, fx, y, fy, z, fz, replaceBlock, null, null, null);
     }
 
-    private static void genRTOPortal(int x, int z) {
+    private static void fillFakePortalBase(int x, int z) {
+        int fx = x + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
+        int fz = z + MagmaRavineHandler.SEARCH_BOX_SIZE-1;
+        int y = 10;
+        int fy = 10;
+
+        filLArea(x, fx, y, fy, z, fz, Blocks.OBSIDIAN, 0.25D, Blocks.MAGMA_BLOCK, true);
+        filLArea(x, fx, y+1, fy+2, z, fz, Blocks.WATER, null, null, null);
+    }
+
+    private static void genRTOPortal(@Nullable Integer x, @Nullable Integer z) {
+        /*
+         * Yeah I know this method of grabbing the schematic file is obscenely stupid, but trying to access it using
+         * the inbuilt minecraft structure/resource managers just didn't work.
+         */
         for (String structureName : portalStructureNames) {
             portalStructureMap.putIfAbsent(structureName,
                     ((StructureManagerInvoker) getMS().getStructureManager())
@@ -347,11 +385,36 @@ public class Noverworld {
 
         String portalStructureName = Util.getRandom(portalStructureNames, randomInstance);
         Structure portalStructure = portalStructureMap.get(portalStructureName);
-        /*
-         * Yeah I know this method of grabbing the schematic file is obscenely stupid, but trying to access it using
-         * the inbuilt minecraft structure/resource managers just didn't work.
-         */
 
+        BlockPos spawnPos = getWorldSpawn();
+
+        if (Objects.isNull(x) || Objects.isNull(z)) {
+            BlockPos foundBiomePos = null;
+            final List<Biome> biomesToSearch = new ArrayList<>(Arrays.asList(
+                    Biomes.DEEP_OCEAN,
+                    Biomes.DEEP_COLD_OCEAN,
+                    Biomes.DEEP_LUKEWARM_OCEAN,
+                    Biomes.DEEP_FROZEN_OCEAN,
+                    Biomes.OCEAN,
+                    Biomes.COLD_OCEAN,
+                    Biomes.LUKEWARM_OCEAN,
+                    Biomes.WARM_OCEAN,
+                    Biomes.FROZEN_OCEAN
+            ));
+
+            while (Objects.isNull(foundBiomePos)) {
+                if (biomesToSearch.size() > 0) {
+                    foundBiomePos = getOverworld().locateBiome(biomesToSearch.remove(0), spawnPos, 160, 8);
+                } else {
+                    foundBiomePos = spawnPos;
+                }
+            }
+
+            x = foundBiomePos.getX();
+            z = foundBiomePos.getZ();
+
+            fillFakePortalBase(x, z);
+        }
 
         BlockMirror mirror = Util.getRandom(BlockMirror.values(), randomInstance);
         BlockRotation rotation = BlockRotation.random(randomInstance);
@@ -363,7 +426,7 @@ public class Noverworld {
         BlockPos adjustedPortalPos = portalPos.add(x-adjustedBoundingBox.minX, 0, z-adjustedBoundingBox.minZ);
 
         portalStructure.place(getOverworld(), adjustedPortalPos, structurePlacementData, randomInstance);
-        fillWater(x, z);
+        fillFakeWaterAccess(x, z);
 
         int spawnShift = MagmaRavineHandler.SEARCH_BOX_SIZE/2-1;
 
@@ -373,16 +436,10 @@ public class Noverworld {
                 .add(2*x-adjustedBoundingBox.minX, 0, 2*z-adjustedBoundingBox.minZ);
 
         log(Level.INFO, "Generated portal in overworld at " + portalPos.toShortString());
-        RTOFound = true;
     }
 
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
-        // The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
         serverPlayerEntity.yaw = spawnYaw;
-
-        if (!RTOFound) {
-            portalPos = getWorldSpawn();
-        }
 
         serverPlayerEntity.setPos(portalPos.getX(), portalPos.getY(), portalPos.getZ());
         serverPlayerEntity.setInNetherPortal(portalPos);
@@ -392,12 +449,12 @@ public class Noverworld {
         serverPlayerEntity.changeDimension(getNether());
         serverPlayerEntity.netherPortalCooldown = serverPlayerEntity.getDefaultNetherPortalCooldown();
 
-        if (!RTOFound) {
-            serverPlayerEntity.sendMessage(new LiteralText("Unable to find RTO portal! Using world spawn.").formatted(Formatting.RED), true);
-            serverPlayerEntity.sendMessage(new LiteralText("[Noverworld] Unable to find RTO portal! Using world spawn.").formatted(Formatting.RED), false);
+        if (!naturalRTOFound) {
+            serverPlayerEntity.sendMessage(new LiteralText("Artificial RTO portal generated").formatted(Formatting.RED), true);
+            serverPlayerEntity.sendMessage(new LiteralText("[Noverworld] Artificial RTO generated").formatted(Formatting.RED), false);
         } else {
-            serverPlayerEntity.sendMessage(new LiteralText("Found and generated RTO portal!").formatted(Formatting.GREEN), true);
-            serverPlayerEntity.sendMessage(new LiteralText("[Noverworld] Found and generated RTO portal!").formatted(Formatting.GREEN), false);
+            serverPlayerEntity.sendMessage(new LiteralText("Natural RTO portal generated!").formatted(Formatting.GREEN), true);
+            serverPlayerEntity.sendMessage(new LiteralText("[Noverworld] Natural RTO portal generated").formatted(Formatting.GREEN), false);
         }
 
         playerLog(Level.INFO, "Sent to nether", serverPlayerEntity);
@@ -442,7 +499,7 @@ public class Noverworld {
         setNewWorld(worldIsNew);
 
         portalPos = null;
-        RTOFound = false;
+        naturalRTOFound = false;
 
         if (worldIsNew) {
             resetRandoms();
@@ -457,23 +514,29 @@ public class Noverworld {
         setFeatureHandlersActive(false);
 
         if (isNewWorld()) {
-            if (MagmaRavineHandler.ifFoundViableBlock()) {
-                log(Level.INFO, "Found " + MagmaRavineHandler.getViableBlockCount() + " magma ravine blocks");
+            log(Level.INFO, "World gen is complete");
 
-                portalPos = null;
+            portalPos = null;
+            naturalRTOFound = false;
 
-                try {
+            try {
+                if (MagmaRavineHandler.ifFoundViableBlock()) {
+                    log(Level.INFO, "Found " + MagmaRavineHandler.getViableBlockCount() + " magma ravine blocks");
+
                     int[] foundPortalPos = MagmaRavineHandler.searchForSuitableArea();
-                    if (!Objects.isNull(foundPortalPos)) {
+                    if (naturalRTOFound = !Objects.isNull(foundPortalPos)) {
                         log(Level.INFO, "Found portal pos at " + Arrays.toString(foundPortalPos));
                         genRTOPortal(foundPortalPos[0], foundPortalPos[1]);
+                        return;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
 
+                log(Level.INFO, "Unable to find natural RTO portal, generating artificial one");
+                genRTOPortal(null, null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                portalPos = getWorldSpawn();
             }
-            log(Level.INFO, "World gen is complete");
         }
     }
 }
