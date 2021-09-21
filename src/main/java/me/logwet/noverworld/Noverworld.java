@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import me.logwet.noverworld.config.*;
 import me.logwet.noverworld.mixin.common.HungerManagerAccessor;
 import me.logwet.noverworld.mixin.common.ServerPlayerEntityAccessor;
+import me.logwet.noverworld.util.ItemsMapping;
+import me.logwet.noverworld.util.WeightedCollection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
@@ -15,6 +17,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
@@ -49,13 +52,16 @@ public class Noverworld {
     private static boolean newWorld = false;
     private static Set<UUID> initializedPlayers;
     private static MinecraftServer MS;
-    private static Random playerRandomInstance;
+    private static Random randomInstance;
     private static WeightedCollection<int[]> spawnYHeightSets;
     private static Map<String, int[]> uniqueFixedConfigItems;
     private static List<NonUniqueItem> nonUniqueFixedConfigItems;
     private static int[] possibleSpawnShifts;
     private static Map<String, Integer> spawnYHeightDistribution;
     private static Map<String, Float> playerAttributes;
+
+    private static float spawnYaw = 0;
+    private static BlockPos spawnPos = new BlockPos(0, 9, 0);
 
     public static void log(Level level, String message) {
         logger.log(level, "[Noverworld] " + message);
@@ -81,6 +87,10 @@ public class Noverworld {
         Noverworld.initializedPlayers = initializedPlayers;
     }
 
+    private static void clearInitializedPlayers() {
+        setInitializedPlayers(new HashSet<>());
+    }
+
     public static MinecraftServer getMS() {
         return MS;
     }
@@ -90,12 +100,24 @@ public class Noverworld {
         MS = ms;
     }
 
-    private static ServerWorld getNether() {
-        return getMS().getWorld(World.NETHER);
+    public static BlockPos getWorldSpawn() {
+        return Objects.requireNonNull(getMS().getOverworld().getSpawnPos());
     }
 
-    private static void resetRandoms() {
-        long rawSeed = Noverworld.getMS().getOverworld().getSeed();
+    public static ChunkPos getWorldSpawnChunk() {
+        return new ChunkPos(getWorldSpawn());
+    }
+
+    private static ServerWorld getOverworld() {
+        return Objects.requireNonNull(getMS().getOverworld());
+    }
+
+    private static ServerWorld getNether() {
+        return Objects.requireNonNull(getMS().getWorld(World.NETHER));
+    }
+
+    private static Random newRandomInstance() {
+        long rawSeed = (long) Objects.requireNonNull((Long) getOverworld().getSeed());
         String rawSeedString = Long.toString(rawSeed);
         long seed;
         StringBuilder seedString = new StringBuilder();
@@ -116,26 +138,58 @@ public class Noverworld {
             seed = rawSeed;
         }
 
-        playerRandomInstance = new Random(seed);
+        Random returnRandom = new Random(seed);
+        int j = returnRandom.nextInt(50) + 50;
+        for (int i = 0; i < j; i++) {
+            returnRandom.nextInt();
+        }
 
-        spawnYHeightSets = new WeightedCollection<>(playerRandomInstance);
+        return returnRandom;
+    }
 
+    private static void resetRandoms() {
+        randomInstance = newRandomInstance();
+
+        spawnYHeightSets = new WeightedCollection<>(randomInstance);
         spawnYHeightDistribution.forEach((rawRange, weight) -> {
             String[] stringRange = rawRange.split("-");
             int[] range = new int[]{Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])};
             spawnYHeightSets.add(weight, IntStream.range(range[0], range[1]).toArray());
         });
 
+        spawnYaw = getRandomAngle();
+
+        float spawnShiftAngle = getRandomAngle();
+        float spawnShiftLength;
+
+        try {
+            spawnShiftLength = (float) possibleSpawnShifts[randomInstance.nextInt(possibleSpawnShifts.length)];
+        } catch (Exception e) {
+            spawnShiftLength = 0;
+        }
+
+        float spawnShiftAngleRadians = spawnShiftAngle * 0.017453292F;
+
+        int yHeight = getSpawnYHeight();
+
+        BlockPos worldSpawn = getWorldSpawn();
+
+        spawnPos = new BlockPos(
+                worldSpawn.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
+                yHeight,
+                worldSpawn.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
+        );
+
         log(Level.INFO, "Reset randoms using world seed");
     }
 
     private static int getSpawnYHeight() {
         int[] heightSet = spawnYHeightSets.next();
-        return heightSet[playerRandomInstance.nextInt(heightSet.length)];
+        return heightSet[randomInstance.nextInt(heightSet.length)];
     }
 
     private static float getRandomAngle() {
-        return (float) Math.floor((-180f + playerRandomInstance.nextFloat() * 360f) * 100) / 100;
+        return (float) Math.floor((-180f + randomInstance.nextFloat() * 360f) * 100) / 100;
     }
 
     public static void readFixedConfigs() {
@@ -280,34 +334,12 @@ public class Noverworld {
     }
 
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
-        // The precision drop here is intentional. It's there to combat determining info about the stronghold from the yaw à la divine travel.
-        serverPlayerEntity.yaw = getRandomAngle();
+        serverPlayerEntity.yaw = spawnYaw;
 
-        float spawnShiftAngle = getRandomAngle();
-        float spawnShiftLength;
+        serverPlayerEntity.setPos(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
+        serverPlayerEntity.setInNetherPortal(spawnPos);
 
-        try {
-            spawnShiftLength = (float) possibleSpawnShifts[playerRandomInstance.nextInt(possibleSpawnShifts.length)];
-        } catch (Exception e) {
-            spawnShiftLength = 0;
-        }
-
-        float spawnShiftAngleRadians = spawnShiftAngle * 0.017453292F;
-
-        BlockPos oldPos = serverPlayerEntity.getBlockPos();
-        int yHeight = getSpawnYHeight();
-
-        BlockPos pos = new BlockPos(
-                oldPos.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
-                yHeight,
-                oldPos.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
-        );
-
-        serverPlayerEntity.setPos(pos.getX(), pos.getY(), pos.getZ());
-        serverPlayerEntity.setInNetherPortal(pos);
-
-        playerLog(Level.INFO, "Spawn shifted " + spawnShiftLength + " blocks on yaw " + spawnShiftAngle, serverPlayerEntity);
-        playerLog(Level.INFO, "Attemping spawn at " + pos + " with yaw " + serverPlayerEntity.yaw, serverPlayerEntity);
+        playerLog(Level.INFO, "Attemping spawn at " + spawnPos.toShortString() + " with yaw " + serverPlayerEntity.yaw, serverPlayerEntity);
 
         serverPlayerEntity.changeDimension(getNether());
         serverPlayerEntity.netherPortalCooldown = serverPlayerEntity.getDefaultNetherPortalCooldown();
@@ -338,15 +370,33 @@ public class Noverworld {
         if (isNewWorld() && getInitializedPlayers().add(serverPlayerEntity.getUuid())) {
             playerLog(Level.INFO, "Player connected and recognised", serverPlayerEntity);
 
-            resetRandoms();
-            setPlayerInventory(serverPlayerEntity);
             sendToNether(serverPlayerEntity);
+            setPlayerInventory(serverPlayerEntity);
             setPlayerAttributes(serverPlayerEntity);
             disableSpawnInvulnerability(serverPlayerEntity);
 
             playerLog(Level.INFO, "Finished server side actions", serverPlayerEntity);
         } else {
             playerLog(Level.INFO, "Noverworld will not handle player", serverPlayerEntity);
+        }
+    }
+
+    public static void onWorldGenStart() {
+        boolean worldIsNew = getOverworld().getTime() == 0;
+        setNewWorld(worldIsNew);
+
+        spawnPos = new BlockPos(0, 9, 0);
+        clearInitializedPlayers();
+
+        if (worldIsNew) {
+            resetRandoms();
+        }
+        log(Level.INFO, worldIsNew ? "Detected creation of a new world" : "Detected reopening of a previously created world");
+    }
+
+    public static void onWorldGenComplete() {
+        if (isNewWorld()) {
+            log(Level.INFO, "World gen is complete");
         }
     }
 }

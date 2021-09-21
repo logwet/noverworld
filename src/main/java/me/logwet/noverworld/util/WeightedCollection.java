@@ -1,4 +1,4 @@
-package me.logwet.noverworld;
+package me.logwet.noverworld.util;
 
 import java.util.NavigableMap;
 import java.util.Random;
