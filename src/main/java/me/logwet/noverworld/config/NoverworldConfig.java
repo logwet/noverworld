@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 public class NoverworldConfig {
-    private final boolean f3Enabled = true;
+    private boolean f3Enabled = true;
 
-    private final boolean recipeBookEnabled = true;
+    private boolean recipeBookEnabled = true;
 
     private List<InventoryItemEntry> inventory;
 
