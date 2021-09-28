@@ -87,6 +87,14 @@
       "unique": true
     },
     {
+      "name": "IRON_INGOT",
+      "count": 1,
+      "damage": 0,
+      "slot": 9,
+      "editable": true,
+      "unique": true
+    },
+    {
       "name": "BREAD",
       "count": 12,
       "damage": 0,
