@@ -336,7 +336,7 @@ public class Noverworld {
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
         serverPlayerEntity.yaw = spawnYaw;
 
-        serverPlayerEntity.setPos(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
+        serverPlayerEntity.setPos(spawnPos.getX()+0.5d, spawnPos.getY(), spawnPos.getZ()+0.5d);
         serverPlayerEntity.setInNetherPortal(spawnPos);
 
         playerLog(Level.INFO, "Attemping spawn at " + spawnPos.toShortString() + " with yaw " + serverPlayerEntity.yaw, serverPlayerEntity);
@@ -359,7 +359,6 @@ public class Noverworld {
         if (playerAttributes.get("hunger") < 20.0F) {
             serverPlayerEntity.getHungerManager().setFoodLevel(Math.round(playerAttributes.get("hunger")));
         }
-
         if (playerAttributes.get("saturation") < 20.0F) {
             ((HungerManagerAccessor) serverPlayerEntity.getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
         }
