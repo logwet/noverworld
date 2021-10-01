@@ -359,7 +359,7 @@ public class Noverworld {
         if (playerAttributes.get("hunger") < 20.0F) {
             serverPlayerEntity.getHungerManager().setFoodLevel(Math.round(playerAttributes.get("hunger")));
         }
-        if (playerAttributes.get("saturation") < 20.0F) {
+        if (playerAttributes.get("saturation") != 5.0F) {
             ((HungerManagerAccessor) serverPlayerEntity.getHungerManager()).setFoodSaturationLevel(playerAttributes.get("saturation"));
         }
         playerLog(Level.INFO, "Set player attributes", serverPlayerEntity);
