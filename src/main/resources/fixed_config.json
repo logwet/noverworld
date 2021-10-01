@@ -110,14 +110,6 @@
       "unique": true
     },
     {
-      "name": "GRAVEL",
-      "count": 2,
-      "damage": 0,
-      "slot": 10,
-      "editable": true,
-      "unique": true
-    },
-    {
       "name": "BREAD",
       "count": 5,
       "damage": 0,
