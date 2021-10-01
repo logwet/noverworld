@@ -11,7 +11,7 @@
   "playerAttributes": {
     "health": 20.0,
     "hunger": 20.0,
-    "saturation": 6.0
+    "saturation": 0.0
   },
   "inventory": [
     {
@@ -91,6 +91,14 @@
       "count": 1,
       "damage": 0,
       "slot": 9,
+      "editable": true,
+      "unique": true
+    },
+    {
+      "name": "GRAVEL",
+      "count": 2,
+      "damage": 0,
+      "slot": 10,
       "editable": true,
       "unique": true
     },
