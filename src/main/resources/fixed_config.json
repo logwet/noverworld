@@ -86,16 +86,16 @@
       "unique": true
     },
     {
-      "name": "GOLD_BLOCK",
-      "count": 8,
+      "name": "IRON_INGOT",
+      "count": 1,
       "damage": 0,
       "slot": 9,
       "editable": true,
       "unique": true
     },
     {
-      "name": "IRON_INGOT",
-      "count": 1,
+      "name": "GOLD_BLOCK",
+      "count": 8,
       "damage": 0,
       "slot": 10,
       "editable": true,
