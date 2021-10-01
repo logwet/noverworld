@@ -64,7 +64,7 @@ jobs:
 
             Make sure to read the [README](README.md) for instructions on how the mod works and how to use it.
 
-            For end users: Make sure you are running the release version of the mod ie. `noverworld-x.x.x.jar` instead of `noverworld-x-x-x-dev.jar`
+            Read the [FAQ Section](README.md#faq) if you're having problems.
           draft: true
           prerelease: false
 
@@ -75,7 +75,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           file: 'build/libs/noverworld-*.jar'
-          delete_file: 'noverworld-*dev.jar;noverworld-*sources.jar'
+          delete_file: 'build/libs/noverworld-*-dev.jar;build/libs/noverworld-*-sources.jar'
           release_id: ${{ steps.create_release.outputs.id }}
           overwrite: false
           verbose: true
