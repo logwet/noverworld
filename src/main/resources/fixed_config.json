@@ -141,6 +141,14 @@
       "slot": 13,
       "editable": true,
       "unique": true
+    },
+    {
+      "name": "GRAVEL",
+      "count": 2,
+      "damage": 0,
+      "slot": 14,
+      "editable": true,
+      "unique": true
     }
   ]
 }
