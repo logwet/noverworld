@@ -135,22 +135,6 @@
       "unique": true
     },
     {
-      "name": "MAGMA_BLOCK",
-      "count": 1,
-      "damage": 0,
-      "slot": 15,
-      "editable": true,
-      "unique": true
-    },
-    {
-      "name": "COBBLESTONE",
-      "count": 1,
-      "damage": 0,
-      "slot": 16,
-      "editable": true,
-      "unique": true
-    },
-    {
       "name": "BREAD",
       "count": 12,
       "damage": 0,
