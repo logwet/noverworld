@@ -13,6 +13,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.Wearable;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -33,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Noverworld {
@@ -56,6 +58,7 @@ public class Noverworld {
     private static WeightedCollection<int[]> spawnYHeightSets;
     private static Map<String, int[]> uniqueFixedConfigItems;
     private static List<NonUniqueItem> nonUniqueFixedConfigItems;
+    private static Set<Item> requiredItems = new HashSet<>();
     private static int[] possibleSpawnShifts;
     private static Map<String, Integer> spawnYHeightDistribution;
     private static Map<String, Float> playerAttributes;
@@ -285,7 +288,10 @@ public class Noverworld {
 
             Field f = Items.class.getDeclaredField(target);
 
-            return new ItemStack((Item) Objects.requireNonNull(f.get(null)));
+            Item item = (Item) Objects.requireNonNull(f.get(null));
+            requiredItems.add(item);
+
+            return new ItemStack(item);
         } catch (Exception e) {
             e.printStackTrace();
             log(Level.ERROR, "Unable to find the ItemStack " + name + ", please double check your config. Replaced with empty slot.");
@@ -333,6 +339,16 @@ public class Noverworld {
         playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
     }
 
+    private static void unlockRecipes(ServerPlayerEntity serverPlayerEntity) {
+        List<Recipe<?>> recipesToUnlock = getMS().getRecipeManager().values()
+                .parallelStream()
+                .filter(recipe -> requiredItems.contains(recipe.getOutput().getItem()))
+                .collect(Collectors.toList());
+        serverPlayerEntity.unlockRecipes(recipesToUnlock);
+
+        playerLog(Level.INFO, "Unlocked recipes", serverPlayerEntity);
+    }
+
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
         serverPlayerEntity.yaw = spawnYaw;
 
@@ -371,6 +387,7 @@ public class Noverworld {
 
             sendToNether(serverPlayerEntity);
             setPlayerInventory(serverPlayerEntity);
+            unlockRecipes(serverPlayerEntity);
             setPlayerAttributes(serverPlayerEntity);
             disableSpawnInvulnerability(serverPlayerEntity);
 
