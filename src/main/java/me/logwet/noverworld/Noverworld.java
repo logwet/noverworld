@@ -9,6 +9,7 @@ import me.logwet.noverworld.util.ItemsMapping;
 import me.logwet.noverworld.util.WeightedCollection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.advancement.Advancement;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -20,6 +21,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -311,6 +313,7 @@ public class Noverworld {
     }
 
     private static void setPlayerInventory(ServerPlayerEntity serverPlayerEntity) {
+        stopAdvancementDisplay();
         config.getItems().forEach((slot, name) -> {
             slot -= 1;
             if (uniqueFixedConfigItems.containsKey(name)) {
@@ -336,6 +339,8 @@ public class Noverworld {
             applyItemStack(itemStack, nonUniqueItem.getAttributes(), serverPlayerEntity);
         });
 
+        serverPlayerEntity.playerScreenHandler.sendContentUpdates();
+        startAdvancementDisplay();
         playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
     }
 
@@ -347,6 +352,14 @@ public class Noverworld {
         serverPlayerEntity.unlockRecipes(recipesToUnlock);
 
         playerLog(Level.INFO, "Unlocked recipes", serverPlayerEntity);
+    }
+
+    private static void stopAdvancementDisplay() {
+        getNether().getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, getMS());
+    }
+
+    private static void startAdvancementDisplay() {
+        getNether().getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, getMS());
     }
 
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
