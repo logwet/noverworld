@@ -9,16 +9,19 @@ import me.logwet.noverworld.util.ItemsMapping;
 import me.logwet.noverworld.util.WeightedCollection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.advancement.Advancement;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.Wearable;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -33,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Noverworld {
@@ -56,6 +60,7 @@ public class Noverworld {
     private static WeightedCollection<int[]> spawnYHeightSets;
     private static Map<String, int[]> uniqueFixedConfigItems;
     private static List<NonUniqueItem> nonUniqueFixedConfigItems;
+    private static Set<Item> requiredItems = new HashSet<>();
     private static int[] possibleSpawnShifts;
     private static Map<String, Integer> spawnYHeightDistribution;
     private static Map<String, Float> playerAttributes;
@@ -285,7 +290,10 @@ public class Noverworld {
 
             Field f = Items.class.getDeclaredField(target);
 
-            return new ItemStack((Item) Objects.requireNonNull(f.get(null)));
+            Item item = (Item) Objects.requireNonNull(f.get(null));
+            requiredItems.add(item);
+
+            return new ItemStack(item);
         } catch (Exception e) {
             e.printStackTrace();
             log(Level.ERROR, "Unable to find the ItemStack " + name + ", please double check your config. Replaced with empty slot.");
@@ -305,6 +313,7 @@ public class Noverworld {
     }
 
     private static void setPlayerInventory(ServerPlayerEntity serverPlayerEntity) {
+        stopAdvancementDisplay();
         config.getItems().forEach((slot, name) -> {
             slot -= 1;
             if (uniqueFixedConfigItems.containsKey(name)) {
@@ -330,7 +339,27 @@ public class Noverworld {
             applyItemStack(itemStack, nonUniqueItem.getAttributes(), serverPlayerEntity);
         });
 
+        serverPlayerEntity.playerScreenHandler.sendContentUpdates();
+        startAdvancementDisplay();
         playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
+    }
+
+    private static void unlockRecipes(ServerPlayerEntity serverPlayerEntity) {
+        List<Recipe<?>> recipesToUnlock = getMS().getRecipeManager().values()
+                .parallelStream()
+                .filter(recipe -> requiredItems.contains(recipe.getOutput().getItem()))
+                .collect(Collectors.toList());
+        serverPlayerEntity.unlockRecipes(recipesToUnlock);
+
+        playerLog(Level.INFO, "Unlocked recipes", serverPlayerEntity);
+    }
+
+    private static void stopAdvancementDisplay() {
+        getNether().getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, getMS());
+    }
+
+    private static void startAdvancementDisplay() {
+        getNether().getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, getMS());
     }
 
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
@@ -371,6 +400,7 @@ public class Noverworld {
 
             sendToNether(serverPlayerEntity);
             setPlayerInventory(serverPlayerEntity);
+            unlockRecipes(serverPlayerEntity);
             setPlayerAttributes(serverPlayerEntity);
             disableSpawnInvulnerability(serverPlayerEntity);
 
