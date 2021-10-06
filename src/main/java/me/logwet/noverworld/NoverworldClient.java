@@ -1,14 +1,14 @@
 package me.logwet.noverworld;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.Option;
-import net.minecraft.network.packet.c2s.play.RecipeBookDataC2SPacket;
 import org.apache.logging.log4j.Level;
 
-import java.util.Objects;
-
+@Environment(EnvType.CLIENT)
 public class NoverworldClient implements ClientModInitializer {
 	private static MinecraftClient MC;
 	private static double oldRenderDistance;
@@ -19,8 +19,8 @@ public class NoverworldClient implements ClientModInitializer {
     }
 
 	public static void setMC(MinecraftClient mc) {
-        MC = mc;
-    }
+		MC = mc;
+	}
 
 	public static ClientPlayerEntity getClientPlayerEntity() {
         return getMC().player;
