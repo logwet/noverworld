@@ -51,23 +51,8 @@ public class NoverworldClient implements ClientModInitializer {
 		}
 	}
 
-	private static void openRecipeBook() {
-		try {
-			if (Noverworld.config.isRecipeBookEnabled()) {
-				getClientPlayerEntity().getRecipeBook().setGuiOpen(true);
-				Objects.requireNonNull(getMC().getNetworkHandler()).sendPacket(
-						new RecipeBookDataC2SPacket(true, true, false, false, false, false)
-				);
-				Noverworld.log(Level.INFO, "Opened recipe book");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static void onClientJoin() {
 		openF3();
-		openRecipeBook();
 		Noverworld.log(Level.INFO, "Finished client side actions");
 	}
 
