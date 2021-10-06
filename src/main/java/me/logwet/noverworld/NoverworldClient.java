@@ -1,14 +1,14 @@
 package me.logwet.noverworld;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.Option;
-import net.minecraft.network.packet.c2s.play.RecipeBookDataC2SPacket;
 import org.apache.logging.log4j.Level;
 
-import java.util.Objects;
-
+@Environment(EnvType.CLIENT)
 public class NoverworldClient implements ClientModInitializer {
 	private static MinecraftClient MC;
 	private static double oldRenderDistance;
@@ -19,8 +19,8 @@ public class NoverworldClient implements ClientModInitializer {
     }
 
 	public static void setMC(MinecraftClient mc) {
-        MC = mc;
-    }
+		MC = mc;
+	}
 
 	public static ClientPlayerEntity getClientPlayerEntity() {
         return getMC().player;
@@ -51,23 +51,8 @@ public class NoverworldClient implements ClientModInitializer {
 		}
 	}
 
-	private static void openRecipeBook() {
-		try {
-			if (Noverworld.config.isRecipeBookEnabled()) {
-				getClientPlayerEntity().getRecipeBook().setGuiOpen(true);
-				Objects.requireNonNull(getMC().getNetworkHandler()).sendPacket(
-						new RecipeBookDataC2SPacket(true, true, false, false, false, false)
-				);
-				Noverworld.log(Level.INFO, "Opened recipe book");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static void onClientJoin() {
 		openF3();
-		openRecipeBook();
 		Noverworld.log(Level.INFO, "Finished client side actions");
 	}
 

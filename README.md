@@ -108,7 +108,6 @@ If you have a problem with the mod, a question or experience a crash follow thes
     - AutoReset (automatically reset worlds w/o macro) ___note: some users have reported problems with this mod___
     - LazyDFU
     - Moonlight (threaded stronghold gen)
-    - Chunk mod (puts you in the world before spawn chunks have finished generating)
   - I will not support multi-threaded world gen such as C2ME. Perhaps sometime in the future as a separate branch.
 
 Contributions are welcome. This mod is licensed under the GPL-3.0, meaning any forks/derivative works must also be open

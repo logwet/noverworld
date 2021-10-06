@@ -19,10 +19,9 @@ public class ClientPlayNetworkHandlerMixin {
     private void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
         Noverworld.log(Level.INFO, "Connected Clientside");
 
-        NoverworldClient.saveOldOptions();
-
         Noverworld.refreshConfigs();
 
+        NoverworldClient.saveOldOptions();
         NoverworldClient.onClientJoin();
     }
 }
