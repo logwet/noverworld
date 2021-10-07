@@ -15,7 +15,7 @@
   "inventory": [
     {
       "name": "WOODEN_AXE",
-      "count": 1,
+      "count": "1-1",
       "damage": 11,
       "slot": 0,
       "editable": true,
@@ -23,7 +23,7 @@
     },
     {
       "name": "IRON_PICKAXE",
-      "count": 1,
+      "count": "1-1",
       "damage": 16,
       "slot": 1,
       "editable": true,
@@ -31,7 +31,7 @@
     },
     {
       "name": "IRON_SHOVEL",
-      "count": 1,
+      "count": "1-1",
       "damage": 10,
       "slot": 2,
       "editable": true,
@@ -39,7 +39,7 @@
     },
     {
       "name": "LAVA_BUCKET",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 3,
       "editable": true,
@@ -47,7 +47,7 @@
     },
     {
       "name": "OAK_PLANKS",
-      "count": 26,
+      "count": "26-26",
       "damage": 0,
       "slot": 4,
       "editable": true,
@@ -55,7 +55,7 @@
     },
     {
       "name": "OAK_BOAT",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 5,
       "editable": true,
@@ -63,7 +63,7 @@
     },
     {
       "name": "CRAFTING_TABLE",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 6,
       "editable": true,
@@ -71,7 +71,7 @@
     },
     {
       "name": "FLINT_AND_STEEL",
-      "count": 1,
+      "count": "1-1",
       "damage": 1,
       "slot": 7,
       "editable": true,
@@ -79,7 +79,7 @@
     },
     {
       "name": "STICK",
-      "count": 2,
+      "count": "2-2",
       "damage": 0,
       "slot": 8,
       "editable": true,
@@ -87,7 +87,7 @@
     },
     {
       "name": "IRON_INGOT",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 9,
       "editable": true,
@@ -95,7 +95,7 @@
     },
     {
       "name": "GOLD_BLOCK",
-      "count": 8,
+      "count": "8-8",
       "damage": 0,
       "slot": 10,
       "editable": true,
@@ -103,7 +103,7 @@
     },
     {
       "name": "GRAVEL",
-      "count": 2,
+      "count": "2-2",
       "damage": 0,
       "slot": 11,
       "editable": true,
@@ -111,7 +111,7 @@
     },
     {
       "name": "MAGMA_BLOCK",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 12,
       "editable": true,
@@ -119,7 +119,7 @@
     },
     {
       "name": "COBBLESTONE",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 13,
       "editable": true,
@@ -127,7 +127,7 @@
     },
     {
       "name": "BREAD",
-      "count": 5,
+      "count": "5-5",
       "damage": 0,
       "slot": 40,
       "editable": true,
