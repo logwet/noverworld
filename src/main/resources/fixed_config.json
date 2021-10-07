@@ -16,7 +16,7 @@
   "inventory": [
     {
       "name": "STONE_AXE",
-      "count": 1,
+      "count": "1-1",
       "damage": 24,
       "slot": 0,
       "editable": true,
@@ -24,7 +24,7 @@
     },
     {
       "name": "WOODEN_PICKAXE",
-      "count": 1,
+      "count": "1-1",
       "damage": 4,
       "slot": 1,
       "editable": true,
@@ -32,7 +32,7 @@
     },
     {
       "name": "STONE_SHOVEL",
-      "count": 1,
+      "count": "1-1",
       "damage": 10,
       "slot": 2,
       "editable": true,
@@ -40,7 +40,7 @@
     },
     {
       "name": "LAVA_BUCKET",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 3,
       "editable": true,
@@ -48,7 +48,7 @@
     },
     {
       "name": "OAK_PLANKS",
-      "count": 12,
+      "count": "12-12",
       "damage": 0,
       "slot": 4,
       "editable": true,
@@ -56,7 +56,7 @@
     },
     {
       "name": "OAK_BOAT",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 5,
       "editable": true,
@@ -64,7 +64,7 @@
     },
     {
       "name": "CRAFTING_TABLE",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 6,
       "editable": true,
@@ -72,7 +72,7 @@
     },
     {
       "name": "FLINT_AND_STEEL",
-      "count": 1,
+      "count": "1-1",
       "damage": 1,
       "slot": 7,
       "editable": true,
@@ -80,7 +80,7 @@
     },
     {
       "name": "STICK",
-      "count": 2,
+      "count": "2-2",
       "damage": 0,
       "slot": 8,
       "editable": true,
@@ -88,7 +88,7 @@
     },
     {
       "name": "WHITE_BED",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 9,
       "editable": false,
@@ -96,7 +96,7 @@
     },
     {
       "name": "WHITE_BED",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 10,
       "editable": false,
@@ -104,7 +104,7 @@
     },
     {
       "name": "WHITE_BED",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 11,
       "editable": false,
@@ -112,7 +112,7 @@
     },
     {
       "name": "WHITE_BED",
-      "count": 1,
+      "count": "1-1",
       "damage": 0,
       "slot": 12,
       "editable": false,
@@ -120,7 +120,7 @@
     },
     {
       "name": "OBSIDIAN",
-      "count": 10,
+      "count": "10-10",
       "damage": 0,
       "slot": 13,
       "editable": true,
@@ -128,7 +128,7 @@
     },
     {
       "name": "GRAVEL",
-      "count": 2,
+      "count": "2-2",
       "damage": 0,
       "slot": 14,
       "editable": true,
@@ -136,7 +136,7 @@
     },
     {
       "name": "BREAD",
-      "count": 12,
+      "count": "12-12",
       "damage": 0,
       "slot": 40,
       "editable": true,
