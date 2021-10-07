@@ -1,8 +1,8 @@
 package me.logwet.noverworld.config;
 
 public class InventoryItemEntry {
-    private final String name;
-    private final int slot;
+    private String name;
+    private int slot;
 
     public InventoryItemEntry(String name, int slot) {
         this.name = name;
