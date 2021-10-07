@@ -391,6 +391,11 @@ public class Noverworld {
         playerLog(Level.INFO, "Sent to nether", serverPlayerEntity);
     }
 
+    private static void setSpawnPoint(ServerPlayerEntity serverPlayerEntity) {
+        serverPlayerEntity.setSpawnPoint(getNether().getRegistryKey(), serverPlayerEntity.getBlockPos(), true, false);
+        playerLog(Level.INFO, "Set spawnpoint to portal", serverPlayerEntity);
+    }
+
     private static void disableSpawnInvulnerability(ServerPlayerEntity serverPlayerEntity) {
         ((ServerPlayerEntityAccessor) serverPlayerEntity).setJoinInvulnerabilityTicks(0);
         playerLog(Level.INFO, "Disabled spawn invulnerability", serverPlayerEntity);
@@ -414,6 +419,7 @@ public class Noverworld {
             playerLog(Level.INFO, "Player connected and recognised", serverPlayerEntity);
 
             sendToNether(serverPlayerEntity);
+            setSpawnPoint(serverPlayerEntity);
             setPlayerInventory(serverPlayerEntity);
             openRecipeBook(serverPlayerEntity);
             unlockRecipes(serverPlayerEntity);
