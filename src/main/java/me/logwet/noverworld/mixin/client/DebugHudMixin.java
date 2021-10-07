@@ -13,7 +13,7 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 @Mixin(DebugHud.class)
-public abstract class DebugHudMixin {
+public class DebugHudMixin {
     /**
      * @author DuncanRuns
      * @reason Puts mod notice in F3 menu
