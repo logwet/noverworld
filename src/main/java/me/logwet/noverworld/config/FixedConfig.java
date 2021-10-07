@@ -11,7 +11,7 @@ public class FixedConfig {
 
     private Map<String, Float> playerAttributes;
 
-    private List<FixedConfigInventoryItemEntry> inventory;
+    private List<InventoryItemEntry> inventory;
 
     public int[] getSpawnShiftRange() {
         return spawnShiftRange;
@@ -25,18 +25,18 @@ public class FixedConfig {
         return playerAttributes;
     }
 
-    public List<FixedConfigInventoryItemEntry> getInventory() {
+    public List<InventoryItemEntry> getInventory() {
         return inventory;
     }
 
-    public List<FixedConfigInventoryItemEntry> getUniqueItems() {
+    public List<InventoryItemEntry> getUniqueItems() {
         return inventory
                 .stream()
                 .filter(item -> item.isUnique() && item.isEditable())
                 .collect(Collectors.toList());
     }
 
-    public List<FixedConfigInventoryItemEntry> getNonUniqueItems() {
+    public List<InventoryItemEntry> getNonUniqueItems() {
         return inventory
                 .stream()
                 .filter(item -> !(item.isUnique() && item.isEditable()))

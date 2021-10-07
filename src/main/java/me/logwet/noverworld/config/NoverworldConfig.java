@@ -1,17 +1,19 @@
 package me.logwet.noverworld.config;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class NoverworldConfig {
     private boolean f3Enabled = true;
 
     private boolean recipeBookEnabled = true;
 
-    private List<InventoryItemEntry> inventory;
+    private List<UserConfigInventoryItemEntry> inventory;
 
     public NoverworldConfig() {
         inventory = new ArrayList<>();
@@ -25,18 +27,18 @@ public class NoverworldConfig {
         return recipeBookEnabled;
     }
 
-    public List<InventoryItemEntry> getInventory() {
+    public List<UserConfigInventoryItemEntry> getInventory() {
         return inventory;
     }
 
-    public void setInventory(List<InventoryItemEntry> inventory) {
+    public void setInventory(List<UserConfigInventoryItemEntry> inventory) {
         this.inventory = inventory;
     }
 
     public Map<String, Integer> getItems() {
         return inventory
                 .stream()
-                .collect(Collectors.toMap(InventoryItemEntry::getName, InventoryItemEntry::getSlot));
+                .collect(Collectors.toMap(UserConfigInventoryItemEntry::getName, UserConfigInventoryItemEntry::getSlot));
     }
 
     @Override
@@ -44,13 +46,16 @@ public class NoverworldConfig {
         if (this == o) return true;
         if (o == null) return false;
 
-        if (o instanceof List && (((List<Object>) o).size() != 0 && ((List<Object>) o).get(0) instanceof FixedConfigInventoryItemEntry)) {
-            Stream<String> uniqueItems = ((List<FixedConfigInventoryItemEntry>) o).stream().map(FixedConfigInventoryItemEntry::getName);
-
-            return getInventory()
+        if (o instanceof List && (((List<Object>) o).size() != 0 && ((List<Object>) o).get(0) instanceof InventoryItemEntry)) {
+            Set<String> uniqueItems = ((List<InventoryItemEntry>) o)
                     .stream()
                     .map(InventoryItemEntry::getName)
-                    .allMatch(userConfigItem -> (uniqueItems.anyMatch(userConfigItem::equals)));
+                    .collect(Collectors.toSet());
+            return getInventory()
+                    .stream()
+                    .map(UserConfigInventoryItemEntry::getName)
+                    .map(String::toUpperCase)
+                    .allMatch(uniqueItems::contains);
         }
         return false;
     }
