@@ -309,25 +309,27 @@ public class Noverworld {
     }
 
     private static void applyItemStack(String name, int count, int damage, int slot, ServerPlayerEntity serverPlayerEntity) {
-        ItemStack itemStack = getItemStackFromName(name);
+        if (count > 0) {
+            ItemStack itemStack = getItemStackFromName(name);
 
-        if (slot >= 36 && slot <= 39) {
-            if (!(itemStack.getItem() instanceof Wearable)) {
-                playerLog(Level.INFO, "Item " + name + " is not wearable! Cannot put into an armor slot", serverPlayerEntity);
-                return;
+            if (slot >= 36 && slot <= 39) {
+                if (!(itemStack.getItem() instanceof Wearable)) {
+                    playerLog(Level.INFO, "Item " + name + " is not wearable! Cannot put into an armor slot", serverPlayerEntity);
+                    return;
+                }
             }
-        }
 
-        if (itemStack.isStackable()) {
-            itemStack.setCount(count);
-        }
+            if (itemStack.isStackable()) {
+                itemStack.setCount(count);
+            }
 
-        if (itemStack.isDamageable()) {
-            itemStack.setDamage(damage);
-        }
+            if (itemStack.isDamageable()) {
+                itemStack.setDamage(damage);
+            }
 
-        serverPlayerEntity.inventory.insertStack(slot, itemStack.copy());
-        Criteria.INVENTORY_CHANGED.trigger(serverPlayerEntity, serverPlayerEntity.inventory, itemStack);
+            serverPlayerEntity.inventory.insertStack(slot, itemStack.copy());
+            Criteria.INVENTORY_CHANGED.trigger(serverPlayerEntity, serverPlayerEntity.inventory, itemStack);
+        }
     }
 
     private static void setPlayerInventory(ServerPlayerEntity serverPlayerEntity) {
