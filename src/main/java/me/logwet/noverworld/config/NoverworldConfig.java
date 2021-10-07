@@ -1,14 +1,15 @@
 package me.logwet.noverworld.config;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NoverworldConfig {
-    private final boolean f3Enabled = true;
+    private boolean f3Enabled = true;
 
-    private final boolean recipeBookEnabled = true;
+    private boolean recipeBookEnabled = true;
 
     private List<InventoryItemEntry> inventory;
 
@@ -32,10 +33,26 @@ public class NoverworldConfig {
         this.inventory = inventory;
     }
 
-    public Map<Integer, String> getItems() {
-        Map<Integer, String> returnValues = new HashMap<>();
-        inventory.forEach(item -> returnValues.put(item.getSlot(), item.getName()));
-        return returnValues;
+    public Map<String, Integer> getItems() {
+        return inventory
+                .stream()
+                .collect(Collectors.toMap(InventoryItemEntry::getName, InventoryItemEntry::getSlot));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+
+        if (o instanceof List && (((List<Object>) o).size() != 0 && ((List<Object>) o).get(0) instanceof FixedConfigInventoryItemEntry)) {
+            Stream<String> uniqueItems = ((List<FixedConfigInventoryItemEntry>) o).stream().map(FixedConfigInventoryItemEntry::getName);
+
+            return getInventory()
+                    .stream()
+                    .map(InventoryItemEntry::getName)
+                    .allMatch(userConfigItem -> (uniqueItems.anyMatch(userConfigItem::equals)));
+        }
+        return false;
     }
 }
 

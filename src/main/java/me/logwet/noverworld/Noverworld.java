@@ -60,8 +60,8 @@ public class Noverworld {
     private static MinecraftServer MS;
     private static Random randomInstance;
     private static WeightedCollection<int[]> spawnYHeightSets;
-    private static Map<String, int[]> uniqueFixedConfigItems;
-    private static List<NonUniqueItem> nonUniqueFixedConfigItems;
+    private static List<FixedConfigInventoryItemEntry> uniqueFixedConfigItems;
+    private static List<FixedConfigInventoryItemEntry> nonUniqueFixedConfigItems;
     private static int[] possibleSpawnShifts;
     private static Map<String, Integer> spawnYHeightDistribution;
     private static Map<String, Float> playerAttributes;
@@ -159,8 +159,7 @@ public class Noverworld {
         spawnYHeightSets = new WeightedCollection<>(randomInstance);
         spawnYHeightDistribution.forEach((rawRange, weight) -> {
             String[] stringRange = rawRange.split("-");
-            int[] range = new int[]{Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])};
-            spawnYHeightSets.add(weight, IntStream.range(range[0], range[1]).toArray());
+            spawnYHeightSets.add(weight, IntStream.range(Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])).toArray());
         });
 
         spawnYaw = getRandomAngle();
@@ -226,10 +225,13 @@ public class Noverworld {
 
     private static void saveConfig() {
         try {
-            List<InventoryItemEntry> newConfigInventory = new ArrayList<>();
-            uniqueFixedConfigItems.forEach((name, attributes) -> newConfigInventory.add(new InventoryItemEntry(name, attributes[2] + 1)));
             config = new NoverworldConfig();
-            config.setInventory(newConfigInventory);
+
+            config.setInventory(uniqueFixedConfigItems
+                    .stream()
+                    .map(item -> new InventoryItemEntry(item.getName(), item.getPrettySlot()))
+                    .collect(Collectors.toList())
+            );
 
             PrintWriter writer = new PrintWriter(CONFIG_FILE_PATH.toFile());
             writer.print("");
@@ -244,7 +246,7 @@ public class Noverworld {
     private static void manageConfigs() throws FileNotFoundException {
         try {
             readConfig();
-            if (config.getItems().size() != uniqueFixedConfigItems.size()) {
+            if (config.equals(uniqueFixedConfigItems)) {
                 throw new MalformedConfigException("Config inventory length is wrong!");
             }
         } catch (Exception e) {
@@ -305,15 +307,23 @@ public class Noverworld {
         }
     }
 
-    private static void applyItemStack(ItemStack itemStack, int[] itemAttributes, ServerPlayerEntity serverPlayerEntity) {
-        if (itemStack.isStackable()) {
-            itemStack.setCount(itemAttributes[0]);
-        }
-        if (itemStack.isDamageable()) {
-            itemStack.setDamage(itemAttributes[1]);
+    private static void applyItemStack(String name, int count, int damage, int slot, ServerPlayerEntity serverPlayerEntity) {
+        ItemStack itemStack = getItemStackFromName(name);
+
+        if (slot >= 36 && slot <= 39) {
+            if (!(itemStack.getItem() instanceof Wearable)) {
+                playerLog(Level.INFO, "Item " + name + " is not wearable! Cannot put into an armor slot", serverPlayerEntity);
+                return;
+            }
         }
 
-        int slot = itemAttributes[2];
+        if (itemStack.isStackable()) {
+            itemStack.setCount(count);
+        }
+
+        if (itemStack.isDamageable()) {
+            itemStack.setDamage(damage);
+        }
 
         serverPlayerEntity.inventory.insertStack(slot, itemStack.copy());
         Criteria.INVENTORY_CHANGED.trigger(serverPlayerEntity, serverPlayerEntity.inventory, itemStack);
@@ -322,29 +332,22 @@ public class Noverworld {
     private static void setPlayerInventory(ServerPlayerEntity serverPlayerEntity) {
         stopAdvancementDisplay(serverPlayerEntity);
 
-        config.getItems().forEach((slot, name) -> {
-            slot -= 1;
-            if (uniqueFixedConfigItems.containsKey(name)) {
-                ItemStack itemStack = getItemStackFromName(name);
-                int[] fixedItemAttributes = uniqueFixedConfigItems.get(name);
+        Map<String, Integer> userConfigItems = config.getItems();
+        uniqueFixedConfigItems.forEach(item -> applyItemStack(
+                item.getName(),
+                item.getCount(randomInstance),
+                item.getDamage(),
+                userConfigItems.getOrDefault(item.getName(), item.getPrettySlot())-1,
+                serverPlayerEntity
+        ));
 
-                if (slot >= 36 && slot <= 39) {
-                    if (!(itemStack.getItem() instanceof Wearable)) {
-                        return; // Note, this doesn't make setPlayerInventory() return, it returns the current iteration of the forEach
-                    }
-                }
-
-                int[] itemAttributes = new int[]{fixedItemAttributes[0], fixedItemAttributes[1], slot};
-                applyItemStack(itemStack, itemAttributes, serverPlayerEntity);
-            } else {
-                playerLog(Level.ERROR, "The item " + name + " cannot be configured!", serverPlayerEntity);
-            }
-        });
-
-        nonUniqueFixedConfigItems.forEach(nonUniqueItem -> {
-            ItemStack itemStack = getItemStackFromName(nonUniqueItem.getName());
-            applyItemStack(itemStack, nonUniqueItem.getAttributes(), serverPlayerEntity);
-        });
+        nonUniqueFixedConfigItems.forEach(item -> applyItemStack(
+                item.getName(),
+                item.getCount(randomInstance),
+                item.getDamage(),
+                item.getSlot(),
+                serverPlayerEntity
+        ));
 
         startAdvancementDisplay(serverPlayerEntity);
         playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
