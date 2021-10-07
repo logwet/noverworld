@@ -60,8 +60,8 @@ public class Noverworld {
     private static MinecraftServer MS;
     private static Random randomInstance;
     private static WeightedCollection<int[]> spawnYHeightSets;
-    private static List<FixedConfigInventoryItemEntry> uniqueFixedConfigItems;
-    private static List<FixedConfigInventoryItemEntry> nonUniqueFixedConfigItems;
+    private static List<InventoryItemEntry> uniqueFixedConfigItems;
+    private static List<InventoryItemEntry> nonUniqueFixedConfigItems;
     private static int[] possibleSpawnShifts;
     private static Map<String, Integer> spawnYHeightDistribution;
     private static Map<String, Float> playerAttributes;
@@ -70,7 +70,7 @@ public class Noverworld {
     private static BlockPos spawnPos = new BlockPos(0, 9, 0);
 
     public static void log(Level level, String message) {
-        logger.log(level, "[Noverworld] " + message);
+        logger.log(level, "[Noverworld v" + VERSION + "] " + message);
     }
 
     public static void playerLog(Level level, String message, ServerPlayerEntity serverPlayerEntity) {
@@ -229,7 +229,7 @@ public class Noverworld {
 
             config.setInventory(uniqueFixedConfigItems
                     .stream()
-                    .map(item -> new InventoryItemEntry(item.getName(), item.getPrettySlot()))
+                    .map(item -> new UserConfigInventoryItemEntry(item.getName(), item.getPrettySlot()))
                     .collect(Collectors.toList())
             );
 
@@ -246,11 +246,12 @@ public class Noverworld {
     private static void manageConfigs() throws FileNotFoundException {
         try {
             readConfig();
-            if (config.equals(uniqueFixedConfigItems)) {
-                throw new MalformedConfigException("Config inventory length is wrong!");
+            if (!config.equals(uniqueFixedConfigItems)) {
+                throw new MalformedConfigException("User config is setup wrong!");
             }
         } catch (Exception e) {
             log(Level.WARN, "Config file not found, new one being written.");
+            e.printStackTrace();
             saveConfig();
             readConfig();
         }
