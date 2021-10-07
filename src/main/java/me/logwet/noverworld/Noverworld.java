@@ -52,6 +52,7 @@ public class Noverworld {
     public static final boolean IS_CLIENT = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
 
     private static final Logger logger = LogManager.getLogger("Noverworld");
+    private static final Set<Item> requiredItems = new HashSet<>();
     public static NoverworldConfig config;
     private static FixedConfig fixedConfig;
     private static boolean newWorld = false;
@@ -61,7 +62,6 @@ public class Noverworld {
     private static WeightedCollection<int[]> spawnYHeightSets;
     private static Map<String, int[]> uniqueFixedConfigItems;
     private static List<NonUniqueItem> nonUniqueFixedConfigItems;
-    private static Set<Item> requiredItems = new HashSet<>();
     private static int[] possibleSpawnShifts;
     private static Map<String, Integer> spawnYHeightDistribution;
     private static Map<String, Float> playerAttributes;
@@ -123,7 +123,7 @@ public class Noverworld {
     }
 
     private static Random newRandomInstance() {
-        long rawSeed = (long) Objects.requireNonNull((Long) getOverworld().getSeed());
+        long rawSeed = Objects.requireNonNull(getOverworld().getSeed());
         String rawSeedString = Long.toString(rawSeed);
         long seed;
         StringBuilder seedString = new StringBuilder();
@@ -196,6 +196,10 @@ public class Noverworld {
 
     private static float getRandomAngle() {
         return (float) Math.floor((-180f + randomInstance.nextFloat() * 360f) * 100) / 100;
+    }
+
+    public static void onInitialize() {
+        log(Level.INFO, "Using Noverworld v" + Noverworld.VERSION + " by logwet!");
     }
 
     public static void readFixedConfigs() {
