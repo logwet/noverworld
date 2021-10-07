@@ -24,6 +24,9 @@ public class InventoryItemEntry {
     public int getCount(@NotNull Random random) {
         String[] stringRange = getRawCount().split("-");
         int[] range = IntStream.range(Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])+1).toArray();
+        if (range.length < 1) {
+            return 0;
+        }
         return range[random.nextInt(range.length)];
     }
 
