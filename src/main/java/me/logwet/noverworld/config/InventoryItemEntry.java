@@ -1,14 +1,22 @@
 package me.logwet.noverworld.config;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
 import java.util.stream.IntStream;
 
 public class InventoryItemEntry {
     private String name;
+
+    @Nullable
+    private String tags;
+
     private String count;
-    private int damage;
+
+    @Nullable
+    private Integer damage;
+
     private int slot;
     private boolean editable;
     private boolean unique;
@@ -16,6 +24,11 @@ public class InventoryItemEntry {
     @NotNull
     public String getName() {
         return name.toLowerCase();
+    }
+
+    @Nullable
+    public String getTags() {
+        return tags;
     }
 
     @NotNull
@@ -32,7 +45,7 @@ public class InventoryItemEntry {
         return range[random.nextInt(range.length)];
     }
 
-    @NotNull
+    @Nullable
     public Integer getDamage() {
         return damage;
     }
