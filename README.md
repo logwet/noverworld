@@ -21,8 +21,8 @@ _The bundled inventory for the `Classic` category_
 You cannot customise the number, type or durability of the items in your inventory but you can adjust what slot they're in.
 You do this through editing `.minecraft/config/noverworld-X.X.X.json`.
 
-_(At the moment the slot of unstackable non-unique items, eg. the beds in classic, are not changeable. This may change
-in the future.)_
+_(At the moment the slot of non-unique items, eg. the beds in classic, are not directly configurable. They are 
+automatically put into the first free slot, so you can move them around by editing the location of the unique items.)_
 
 ```json
 {
@@ -30,12 +30,12 @@ in the future.)_
   "recipeBookEnabled": true,
   "inventory": [
     {
-      "name": "WOODEN_AXE",
+      "name": "wooden_axe",
       "slot": 1
     },
     ...
     {
-      "name": "BREAD",
+      "name": "bread",
       "slot": 41
     }
   ]
@@ -63,6 +63,62 @@ randomly determined using a different distribution per release. You can see this
 All random values in the mod are deterministically derived from your world seed, meaning creating a world with the same
 seed will yield the same yaw and targeted y height. Therefore, the mod is suitable for SSG
 
+## Creating your own custom inventory
+
+```json
+"spawnShiftRange": [
+  50,
+  150
+]
+```
+
+This determines the distance the player's spawn will be shifted from the world spawn (radius). It will be randomly
+chosen from between the lower and upper bound.
+
+```json
+"spawnYHeightDistribution": {
+  "7-13": 80,
+  "14-59": 5,
+  "60-75": 10,
+  "76-90": 5
+}
+```
+
+This determines the player's targeted y height when generating a portal. The key is a range in the format "min-max" and
+the value is the relative weight that should be given to that range.
+
+```json
+"playerAttributes": {
+  "health": 17.0,
+  "hunger": 15.0,
+  "saturation": 3.0
+}
+```
+
+This determines the player's health, hunger and saturation.
+
+```json
+{
+  "name": "iron_boots",
+  "tags": "{Enchantments:[{id:soul_speed,lvl:1}]}",
+  "count": "0-4",
+  "damage": 20,
+  "slot": 36,
+  "editable": true,
+  "unique": true
+}
+```
+
+| Key               	| Value                                                                                                                                                                                       	|
+|-------------------	|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| name              	| The name of the item in the registry eg. `"iron_axe"`. If you want to add an item from outside of minecraft (eg. from a mod) you need to include the mod id like this: `"modid:moddeditem"` 	|
+| tags (optional)   	| The nbt tags of the item, in JSON notation. Useful for things like enchantments. You shouldn't do damage/durability through here, do it using the `"damage"` key.                           	|
+| count             	| A range in the format `"min-max"`. The number of items will be randomly chosen from that range using a uniform distribution.                                                                	|
+| damage (optional) 	| Use this to change the durability of the item. Ie. a pickaxe which has mined 10 blocks will have 10 damage.                                                                                 	|
+| slot              	| The slot the item occupies in the inventory. Note that while the user config starts counting from 1, `fixed_config` follows Java array conventions. Therefore, slot 1 of the hotbar = 0.    	|
+| editable          	| Whether the slot of this item should be user configurable.                                                                                                                                  	|
+| unique            	| Whether this item is unique or is one of many of the same type (eg. multiple beds). Note: you can make the first of a set of multiple items unique and thus user configurable.              	|
+
 ## Support
 
 If you have a problem with the mod, a question or experience a crash follow these steps:
@@ -84,6 +140,7 @@ If you have a problem with the mod, a question or experience a crash follow thes
 - How do I change what items are in my hotbar/inventory?
   - You can't easily do so. The three Noverworld categories have fixed inventories, you can change the slots your items are in but not their type, durability or count.
   - If you __really__ want to change the items, you can do so by editing `fixed_config.json` and recompiling the mod, but beware that this will make your runs unverifiable for the leaderboards.
+    - See the [Creating your own custom inventory](#creating-your-own-custom-inventory) section for more information.
 - How do I reset my hotbar to the default included in the mod?
   - Delete the config file at `.minecraft/config/noverworld-X.X.X.json`. When you create a new world or reload the game the defaults will be applied.
 - I updated the mod and my inventory slot config has been reset, what gives?
