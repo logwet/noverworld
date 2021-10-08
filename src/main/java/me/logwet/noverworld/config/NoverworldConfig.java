@@ -45,23 +45,17 @@ public class NoverworldConfig {
                 .collect(Collectors.toMap(UserConfigInventoryItemEntry::getName, UserConfigInventoryItemEntry::getSlot));
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null) return false;
+    public boolean matches(List<InventoryItemEntry> uniqueItemsList) {
+        Set<String> uniqueItems = uniqueItemsList
+                .stream()
+                .map(InventoryItemEntry::getName)
+                .collect(Collectors.toSet());
 
-        if (o instanceof List && (((List<Object>) o).size() != 0 && ((List<Object>) o).get(0) instanceof InventoryItemEntry)) {
-            Set<String> uniqueItems = ((List<InventoryItemEntry>) o)
-                    .stream()
-                    .map(InventoryItemEntry::getName)
-                    .collect(Collectors.toSet());
-            return getInventory()
-                    .stream()
-                    .map(UserConfigInventoryItemEntry::getName)
-                    .map(String::toUpperCase)
-                    .allMatch(uniqueItems::contains);
-        }
-        return false;
+        return getInventory().size() == uniqueItems.size()
+                && getInventory()
+                .stream()
+                .map(UserConfigInventoryItemEntry::getName)
+                .allMatch(uniqueItems::contains);
     }
 }
 

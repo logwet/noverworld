@@ -13,7 +13,7 @@ public class UserConfigInventoryItemEntry {
 
     @NotNull
     public String getName() {
-        return name.toUpperCase();
+        return name.toLowerCase();
     }
 
     @NotNull

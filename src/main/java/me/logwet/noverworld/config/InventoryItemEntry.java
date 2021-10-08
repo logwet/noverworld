@@ -15,7 +15,7 @@ public class InventoryItemEntry {
 
     @NotNull
     public String getName() {
-        return name;
+        return name.toLowerCase();
     }
 
     @NotNull
