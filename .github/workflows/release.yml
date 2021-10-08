@@ -68,6 +68,12 @@ jobs:
           draft: true
           prerelease: false
 
+      - name: Delete dev artifacts
+        if: ${{ always() }}
+        run: |
+        find build/libs/ -name 'noverworld-*-dev.jar' -delete
+        find build/libs/ -name 'noverworld-*-sources.jar' -delete
+
       - name: Upload all artifacts
         uses: xresloader/upload-to-github-release@v1
         if: ${{ always() }}
@@ -78,13 +84,3 @@ jobs:
           release_id: ${{ steps.create_release.outputs.id }}
           overwrite: false
           verbose: true
-
-      - name: Delete dev release artifacts
-        uses: mknejp/delete-release-assets@v1
-        if: ${{ always() }}
-        with:
-          token: ${{ github.token }}
-          tag: ${{ steps.vars.outputs.tag }}
-          assets: |
-            noverworld-*-dev.jar
-            noverworld-*-sources.jar
