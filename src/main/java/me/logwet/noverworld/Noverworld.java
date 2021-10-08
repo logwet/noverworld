@@ -366,27 +366,31 @@ public class Noverworld {
         stopAdvancementDisplay(serverPlayerEntity);
 
         Map<String, Integer> userConfigItems = config.getItems();
-        boolean uniqueItemsSuccess = uniqueFixedConfigItems
+        boolean uniqueItemsFailure = uniqueFixedConfigItems
                 .stream()
-                .allMatch(item -> applyItemStack(
+                .map(item -> applyItemStack(
                         item.getName(),
                         item.getCount(randomInstance),
                         item.getDamage(),
                         userConfigItems.getOrDefault(item.getName(), item.getPrettySlot()) - 1,
                         serverPlayerEntity)
-                );
+                )
+                .collect(Collectors.toSet())
+                .contains(false);
 
-        boolean nonUniqueItemsSuccess = nonUniqueFixedConfigItems
+        boolean nonUniqueItemsFailure = nonUniqueFixedConfigItems
                 .stream()
-                .allMatch(item -> applyItemStack(
+                .map(item -> applyItemStack(
                         item.getName(),
                         item.getCount(randomInstance),
                         item.getDamage(),
                         item.getSlot(),
                         serverPlayerEntity)
-                );
+                )
+                .collect(Collectors.toSet())
+                .contains(false);
 
-        if (!(uniqueItemsSuccess && nonUniqueItemsSuccess)) {
+        if (uniqueItemsFailure || nonUniqueItemsFailure) {
             serverPlayerEntity.sendMessage(new LiteralText("One or more items were not successfully applied. Double check your config.").formatted(Formatting.LIGHT_PURPLE), true);
             playerLog(Level.ERROR, "One or more items were not successfully applied. Double check your config", serverPlayerEntity);
         }
