@@ -71,8 +71,7 @@ jobs:
       - name: Delete dev artifacts
         if: ${{ always() }}
         run: |
-        find build/libs/ -name 'noverworld-*-dev.jar' -delete
-        find build/libs/ -name 'noverworld-*-sources.jar' -delete
+          find build/libs/ -name 'noverworld-*-dev.jar' -delete
 
       - name: Upload all artifacts
         uses: xresloader/upload-to-github-release@v1
