@@ -18,11 +18,9 @@ jobs:
         with:
           ref: master
 
-      - name: 'Get Tag'
-        id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-        with:
-          fallback: 1.0.0
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
 
       - name: Set up JDK 8
         uses: actions/setup-java@v2
@@ -59,8 +57,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.previoustag.outputs.tag }}
-          release_name: ${{ steps.previoustag.outputs.tag }}
+          tag_name: ${{ steps.vars.outputs.tag }}
+          release_name: ${{ steps.vars.outputs.tag }}
           body: |
             <CHANGELOG>
 
@@ -81,13 +79,12 @@ jobs:
           overwrite: false
           verbose: true
 
-      - name: Delete dev artifacts
-        uses: xresloader/upload-to-github-release@v1
+      - name: Delete dev release artifacts
+        uses: mknejp/delete-release-assets@v1
         if: ${{ always() }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          delete_file: 'noverworld-*-dev.jar;noverworld-*-sources.jar'
-          release_id: ${{ steps.create_release.outputs.id }}
-          overwrite: false
-          verbose: true
+          token: ${{ github.token }}
+          tag: ${{ steps.vars.outputs.tag }}
+          assets: |
+            noverworld-*-dev.jar
+            noverworld-*-sources.jar
