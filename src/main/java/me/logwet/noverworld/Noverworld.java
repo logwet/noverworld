@@ -10,6 +10,7 @@ import me.logwet.noverworld.util.WeightedCollection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.criterion.Criteria;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -330,13 +331,6 @@ public class Noverworld {
 
                     if (Objects.isNull(itemStack)) return false;
 
-                    if (slot >= 36 && slot <= 39) {
-                        if (!(itemStack.getItem() instanceof Wearable)) {
-                            playerLog(Level.ERROR, "Item " + name + " is not wearable! Cannot put into an armor slot", serverPlayerEntity);
-                            return false;
-                        }
-                    }
-
                     if (itemStack.isStackable()) {
                         itemStack.setCount(count);
                     }
@@ -345,7 +339,20 @@ public class Noverworld {
                         itemStack.setDamage(damage);
                     }
 
-                    serverPlayerEntity.inventory.insertStack(slot, itemStack.copy());
+                    if (slot >= 36 && slot <= 39) {
+                        if (!(itemStack.getItem() instanceof Wearable)) {
+                            playerLog(Level.ERROR, "Item " + name + " is not wearable! Cannot put into an armor slot", serverPlayerEntity);
+                            return false;
+                        }
+
+                        serverPlayerEntity.inventory.armor.set(MobEntity.getPreferredEquipmentSlot(itemStack).getEntitySlotId(), itemStack.copy());
+                    } else if (slot == 40) {
+                        serverPlayerEntity.inventory.offHand.set(0, itemStack.copy());
+                    }
+                    else {
+                        serverPlayerEntity.inventory.insertStack(slot, itemStack.copy());
+                    }
+
                     Criteria.INVENTORY_CHANGED.trigger(serverPlayerEntity, serverPlayerEntity.inventory, itemStack);
 
                     return true;
