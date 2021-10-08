@@ -4,7 +4,7 @@
   "version": "${version}",
   "accessWidener": "noverworld.accesswidener",
   "name": "Noverworld",
-  "description": "Spawn in the nether with a custom hotbar. Idea by Fyroah and k4yfour",
+  "description": "Spawn in the nether with a set of items. Made by logwet, designed by k4yfour, idea by Fyroah.",
   "authors": [
     "logwet"
   ],
