@@ -1,5 +1,7 @@
 package me.logwet.noverworld.config;
 
+import org.jetbrains.annotations.NotNull;
+
 public class UserConfigInventoryItemEntry {
     private String name;
     private int slot;
@@ -9,11 +11,13 @@ public class UserConfigInventoryItemEntry {
         this.slot = slot;
     }
 
+    @NotNull
     public String getName() {
-        return name;
+        return name.toUpperCase();
     }
 
-    public int getSlot() {
+    @NotNull
+    public Integer getSlot() {
         return slot;
     }
 }

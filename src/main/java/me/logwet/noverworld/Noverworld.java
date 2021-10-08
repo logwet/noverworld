@@ -18,6 +18,8 @@ import net.minecraft.recipe.Recipe;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.LiteralText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
@@ -27,6 +29,8 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -73,7 +77,7 @@ public class Noverworld {
         logger.log(level, "[Noverworld v" + VERSION + "] " + message);
     }
 
-    public static void playerLog(Level level, String message, ServerPlayerEntity serverPlayerEntity) {
+    public static void playerLog(Level level, String message, @NotNull ServerPlayerEntity serverPlayerEntity) {
         log(level, "[" + serverPlayerEntity.getEntityName() + "] " + message);
     }
 
@@ -85,6 +89,7 @@ public class Noverworld {
         Noverworld.newWorld = newWorld;
     }
 
+    @NotNull
     public static Set<UUID> getInitializedPlayers() {
         return initializedPlayers;
     }
@@ -97,6 +102,7 @@ public class Noverworld {
         setInitializedPlayers(new HashSet<>());
     }
 
+    @NotNull
     public static MinecraftServer getMS() {
         return MS;
     }
@@ -106,24 +112,29 @@ public class Noverworld {
         MS = ms;
     }
 
+    @NotNull
     public static BlockPos getWorldSpawn() {
         return Objects.requireNonNull(getMS().getOverworld().getSpawnPos());
     }
 
+    @NotNull
     public static ChunkPos getWorldSpawnChunk() {
         return new ChunkPos(getWorldSpawn());
     }
 
+    @NotNull
     private static ServerWorld getOverworld() {
         return Objects.requireNonNull(getMS().getOverworld());
     }
 
+    @NotNull
     private static ServerWorld getNether() {
         return Objects.requireNonNull(getMS().getWorld(World.NETHER));
     }
 
+    @NotNull
     private static Random newRandomInstance() {
-        long rawSeed = Objects.requireNonNull(getOverworld().getSeed());
+        long rawSeed = Objects.requireNonNull((Long) getOverworld().getSeed());
         String rawSeedString = Long.toString(rawSeed);
         long seed;
         StringBuilder seedString = new StringBuilder();
@@ -188,12 +199,14 @@ public class Noverworld {
         log(Level.INFO, "Reset randoms using world seed");
     }
 
-    private static int getSpawnYHeight() {
+    @NotNull
+    private static Integer getSpawnYHeight() {
         int[] heightSet = spawnYHeightSets.next();
         return heightSet[randomInstance.nextInt(heightSet.length)];
     }
 
-    private static float getRandomAngle() {
+    @NotNull
+    private static Float getRandomAngle() {
         return (float) Math.floor((-180f + randomInstance.nextFloat() * 360f) * 100) / 100;
     }
 
@@ -278,6 +291,7 @@ public class Noverworld {
     }
 
     // Thank god for reflection ThankEgg
+    @Nullable
     private static ItemStack getItemStackFromName(String name) {
         name = Objects.requireNonNull(name).toUpperCase();
         try {
@@ -303,32 +317,48 @@ public class Noverworld {
             return new ItemStack(item);
         } catch (Exception e) {
             e.printStackTrace();
-            log(Level.ERROR, "Unable to find the ItemStack " + name + ", please double check your config. Replaced with empty slot.");
-            return ItemStack.EMPTY.copy();
+            log(Level.ERROR, "Unable to find the Item type " + name + ", please double check your config. Replaced with empty slot.");
+            return null;
         }
     }
 
-    private static void applyItemStack(String name, int count, int damage, int slot, ServerPlayerEntity serverPlayerEntity) {
-        if (count > 0) {
-            ItemStack itemStack = getItemStackFromName(name);
+    private static boolean applyItemStack(String name, int count, int damage, int slot, ServerPlayerEntity serverPlayerEntity) {
+        try {
+            if (count > 0) {
+                if (slot >= -1 && slot <= 40) {
+                    ItemStack itemStack = getItemStackFromName(name);
 
-            if (slot >= 36 && slot <= 39) {
-                if (!(itemStack.getItem() instanceof Wearable)) {
-                    playerLog(Level.INFO, "Item " + name + " is not wearable! Cannot put into an armor slot", serverPlayerEntity);
-                    return;
+                    if (Objects.isNull(itemStack)) return false;
+
+                    if (slot >= 36 && slot <= 39) {
+                        if (!(itemStack.getItem() instanceof Wearable)) {
+                            playerLog(Level.ERROR, "Item " + name + " is not wearable! Cannot put into an armor slot", serverPlayerEntity);
+                            return false;
+                        }
+                    }
+
+                    if (itemStack.isStackable()) {
+                        itemStack.setCount(count);
+                    }
+
+                    if (itemStack.isDamageable()) {
+                        itemStack.setDamage(damage);
+                    }
+
+                    serverPlayerEntity.inventory.insertStack(slot, itemStack.copy());
+                    Criteria.INVENTORY_CHANGED.trigger(serverPlayerEntity, serverPlayerEntity.inventory, itemStack);
+
+                    return true;
+                } else {
+                    playerLog(Level.ERROR, "Item " + name + " has not been configured for a valid slot!", serverPlayerEntity);
+                    return false;
                 }
             }
-
-            if (itemStack.isStackable()) {
-                itemStack.setCount(count);
-            }
-
-            if (itemStack.isDamageable()) {
-                itemStack.setDamage(damage);
-            }
-
-            serverPlayerEntity.inventory.insertStack(slot, itemStack.copy());
-            Criteria.INVENTORY_CHANGED.trigger(serverPlayerEntity, serverPlayerEntity.inventory, itemStack);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            playerLog(Level.ERROR, "Unable to apply item " + name, serverPlayerEntity);
+            return false;
         }
     }
 
@@ -336,21 +366,30 @@ public class Noverworld {
         stopAdvancementDisplay(serverPlayerEntity);
 
         Map<String, Integer> userConfigItems = config.getItems();
-        uniqueFixedConfigItems.forEach(item -> applyItemStack(
-                item.getName(),
-                item.getCount(randomInstance),
-                item.getDamage(),
-                userConfigItems.getOrDefault(item.getName(), item.getPrettySlot())-1,
-                serverPlayerEntity
-        ));
+        boolean uniqueItemsSuccess = uniqueFixedConfigItems
+                .stream()
+                .allMatch(item -> applyItemStack(
+                        item.getName(),
+                        item.getCount(randomInstance),
+                        item.getDamage(),
+                        userConfigItems.getOrDefault(item.getName(), item.getPrettySlot()) - 1,
+                        serverPlayerEntity)
+                );
 
-        nonUniqueFixedConfigItems.forEach(item -> applyItemStack(
-                item.getName(),
-                item.getCount(randomInstance),
-                item.getDamage(),
-                item.getSlot(),
-                serverPlayerEntity
-        ));
+        boolean nonUniqueItemsSuccess = nonUniqueFixedConfigItems
+                .stream()
+                .allMatch(item -> applyItemStack(
+                        item.getName(),
+                        item.getCount(randomInstance),
+                        item.getDamage(),
+                        item.getSlot(),
+                        serverPlayerEntity)
+                );
+
+        if (!(uniqueItemsSuccess && nonUniqueItemsSuccess)) {
+            serverPlayerEntity.sendMessage(new LiteralText("One or more items were not successfully applied. Double check your config.").formatted(Formatting.LIGHT_PURPLE), true);
+            playerLog(Level.ERROR, "One or more items were not successfully applied. Double check your config", serverPlayerEntity);
+        }
 
         startAdvancementDisplay(serverPlayerEntity);
         playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
@@ -366,7 +405,7 @@ public class Noverworld {
     }
 
     private static void unlockRecipes(ServerPlayerEntity serverPlayerEntity) {
-        List<Recipe<?>> recipesToUnlock = getMS().getRecipeManager().values()
+        List<Recipe<?>> recipesToUnlock = Objects.requireNonNull(getMS().getRecipeManager().values())
                 .parallelStream()
                 .filter(recipe -> requiredItems.contains(recipe.getOutput().getItem()))
                 .collect(Collectors.toList());
@@ -384,6 +423,8 @@ public class Noverworld {
     }
 
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
+        serverPlayerEntity.sendMessage(new LiteralText("Please wait for chunks at target to be generated. Don't open your inventory.").formatted(Formatting.RED), true);
+
         serverPlayerEntity.refreshPositionAndAngles(spawnPos, spawnYaw, 0);
         serverPlayerEntity.setVelocity(Vec3d.ZERO);
 
@@ -394,11 +435,13 @@ public class Noverworld {
         serverPlayerEntity.changeDimension(getNether());
         serverPlayerEntity.netherPortalCooldown = serverPlayerEntity.getDefaultNetherPortalCooldown();
 
+        serverPlayerEntity.sendMessage(new LiteralText(""), true);
+
         playerLog(Level.INFO, "Sent to nether", serverPlayerEntity);
     }
 
     private static void setSpawnPoint(ServerPlayerEntity serverPlayerEntity) {
-        serverPlayerEntity.setSpawnPoint(getNether().getRegistryKey(), serverPlayerEntity.getBlockPos(), true, false);
+        serverPlayerEntity.setSpawnPoint(serverPlayerEntity.world.getRegistryKey(), serverPlayerEntity.getBlockPos(), true, false);
         playerLog(Level.INFO, "Set spawnpoint to portal", serverPlayerEntity);
     }
 
@@ -420,7 +463,7 @@ public class Noverworld {
         playerLog(Level.INFO, "Set player attributes", serverPlayerEntity);
     }
 
-    public static void onServerJoin(ServerPlayerEntity serverPlayerEntity) {
+    public static void onServerJoin(@NotNull ServerPlayerEntity serverPlayerEntity) {
         if (isNewWorld() && getInitializedPlayers().add(serverPlayerEntity.getUuid())) {
             playerLog(Level.INFO, "Player connected and recognised", serverPlayerEntity);
 
