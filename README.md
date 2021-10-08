@@ -1,5 +1,11 @@
 # Noverworld
 
+- [Noverworld](#noverworld)
+  * [About](#about)
+  * [Creating your own custom inventory](#creating-your-own-custom-inventory)
+  * [Support](#support)
+  * [FAQ](#faq)
+
 ## About
 
 When you create a new world, you will spawn in the nether at a portal.
