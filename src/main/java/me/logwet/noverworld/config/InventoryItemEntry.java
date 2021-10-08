@@ -13,10 +13,12 @@ public class InventoryItemEntry {
     private boolean editable;
     private boolean unique;
 
+    @NotNull
     public String getName() {
         return name;
     }
 
+    @NotNull
     public String getRawCount() {
         return count;
     }
@@ -30,23 +32,28 @@ public class InventoryItemEntry {
         return range[random.nextInt(range.length)];
     }
 
-    public int getDamage() {
+    @NotNull
+    public Integer getDamage() {
         return damage;
     }
 
-    public int getSlot() {
+    @NotNull
+    public Integer getSlot() {
         return slot;
     }
 
-    public int getPrettySlot() {
+    @NotNull
+    public Integer getPrettySlot() {
         return slot + 1;
     }
 
-    public boolean isEditable() {
+    @NotNull
+    public Boolean isEditable() {
         return editable;
     }
 
-    public boolean isUnique() {
+    @NotNull
+    public Boolean isUnique() {
         return unique;
     }
 }
