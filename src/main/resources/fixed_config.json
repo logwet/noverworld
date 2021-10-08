@@ -87,38 +87,6 @@
       "unique": true
     },
     {
-      "name": "WHITE_BED",
-      "count": "1-1",
-      "damage": 0,
-      "slot": -1,
-      "editable": false,
-      "unique": false
-    },
-    {
-      "name": "WHITE_BED",
-      "count": "1-1",
-      "damage": 0,
-      "slot": -1,
-      "editable": false,
-      "unique": false
-    },
-    {
-      "name": "WHITE_BED",
-      "count": "1-1",
-      "damage": 0,
-      "slot": -1,
-      "editable": false,
-      "unique": false
-    },
-    {
-      "name": "WHITE_BED",
-      "count": "1-1",
-      "damage": 0,
-      "slot": -1,
-      "editable": false,
-      "unique": false
-    },
-    {
       "name": "OBSIDIAN",
       "count": "10-10",
       "damage": 0,
@@ -141,6 +109,38 @@
       "slot": 40,
       "editable": true,
       "unique": true
+    },
+    {
+      "name": "WHITE_BED",
+      "count": "1-1",
+      "damage": 0,
+      "slot": -1,
+      "editable": false,
+      "unique": false
+    },
+    {
+      "name": "WHITE_BED",
+      "count": "1-1",
+      "damage": 0,
+      "slot": -1,
+      "editable": false,
+      "unique": false
+    },
+    {
+      "name": "WHITE_BED",
+      "count": "1-1",
+      "damage": 0,
+      "slot": -1,
+      "editable": false,
+      "unique": false
+    },
+    {
+      "name": "WHITE_BED",
+      "count": "1-1",
+      "damage": 0,
+      "slot": -1,
+      "editable": false,
+      "unique": false
     }
   ]
 }
