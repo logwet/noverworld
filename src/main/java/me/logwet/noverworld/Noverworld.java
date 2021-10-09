@@ -239,13 +239,7 @@ public class Noverworld {
 
     private static void saveConfig() {
         try {
-            config = new NoverworldConfig();
-
-            config.setInventory(uniqueFixedConfigItems
-                    .stream()
-                    .map(item -> new UserConfigInventoryItemEntry(item.getName(), item.getPrettySlot()))
-                    .collect(Collectors.toList())
-            );
+            config = NoverworldConfig.fromFixedConfigs(uniqueFixedConfigItems);
 
             PrintWriter writer = new PrintWriter(CONFIG_FILE_PATH.toFile());
             writer.print("");
@@ -366,7 +360,7 @@ public class Noverworld {
     }
 
     private static void setPlayerInventory(ServerPlayerEntity serverPlayerEntity) {
-        stopAdvancementDisplay(serverPlayerEntity);
+        setAdvancementDisplay(serverPlayerEntity, false);
 
         Map<String, Integer> userConfigItems = config.getItems();
         boolean uniqueItemsFailure = uniqueFixedConfigItems
@@ -400,7 +394,7 @@ public class Noverworld {
             playerLog(Level.ERROR, "One or more items were not successfully applied. Double check your config", serverPlayerEntity);
         }
 
-        startAdvancementDisplay(serverPlayerEntity);
+        setAdvancementDisplay(serverPlayerEntity, true);
         playerLog(Level.INFO, "Overwrote player inventory with configured items", serverPlayerEntity);
     }
 
@@ -415,7 +409,7 @@ public class Noverworld {
 
     private static void unlockRecipes(ServerPlayerEntity serverPlayerEntity) {
         List<Recipe<?>> recipesToUnlock = Objects.requireNonNull(getMS().getRecipeManager().values())
-                .parallelStream()
+                .stream()
                 .filter(recipe -> requiredItems.contains(recipe.getOutput().getItem()))
                 .collect(Collectors.toList());
         serverPlayerEntity.unlockRecipes(recipesToUnlock);
@@ -423,12 +417,8 @@ public class Noverworld {
         playerLog(Level.INFO, "Unlocked recipes", serverPlayerEntity);
     }
 
-    private static void stopAdvancementDisplay(ServerPlayerEntity serverPlayerEntity) {
-        serverPlayerEntity.world.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, null);
-    }
-
-    private static void startAdvancementDisplay(ServerPlayerEntity serverPlayerEntity) {
-        serverPlayerEntity.world.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(true, null);
+    private static void setAdvancementDisplay(ServerPlayerEntity serverPlayerEntity, boolean value) {
+        serverPlayerEntity.world.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(value, null);
     }
 
     private static void sendToNether(ServerPlayerEntity serverPlayerEntity) {
