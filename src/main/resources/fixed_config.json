@@ -81,6 +81,13 @@
       "unique": true
     },
     {
+      "name": "white_bed",
+      "count": "1-1",
+      "slot": 9,
+      "editable": true,
+      "unique": true
+    },
+    {
       "name": "obsidian",
       "count": "10-10",
       "slot": 13,
@@ -105,28 +112,21 @@
       "name": "white_bed",
       "count": "1-1",
       "slot": -1,
-      "editable": false,
+      "editable": true,
       "unique": false
     },
     {
       "name": "white_bed",
       "count": "1-1",
       "slot": -1,
-      "editable": false,
+      "editable": true,
       "unique": false
     },
     {
       "name": "white_bed",
       "count": "1-1",
       "slot": -1,
-      "editable": false,
-      "unique": false
-    },
-    {
-      "name": "white_bed",
-      "count": "1-1",
-      "slot": -1,
-      "editable": false,
+      "editable": true,
       "unique": false
     }
   ]
