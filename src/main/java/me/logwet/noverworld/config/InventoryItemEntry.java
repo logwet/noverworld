@@ -28,11 +28,6 @@ public class InventoryItemEntry extends UserConfigInventoryItemEntry {
         this.unique = unique;
     }
 
-    @NotNull
-    public String getName() {
-        return name.toLowerCase();
-    }
-
     @Nullable
     public String getTags() {
         return tags;
@@ -55,11 +50,6 @@ public class InventoryItemEntry extends UserConfigInventoryItemEntry {
     @Nullable
     public Integer getDamage() {
         return damage;
-    }
-
-    @NotNull
-    public Integer getSlot() {
-        return slot;
     }
 
     @NotNull
