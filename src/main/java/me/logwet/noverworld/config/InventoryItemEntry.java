@@ -6,24 +6,26 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-public class InventoryItemEntry {
-    private String name;
-
+public class InventoryItemEntry extends UserConfigInventoryItemEntry {
     @Nullable
     private String tags;
 
+    @NotNull
     private String count;
 
     @Nullable
     private Integer damage;
 
-    private int slot;
     private boolean editable;
+
     private boolean unique;
 
-    @NotNull
-    public String getName() {
-        return name.toLowerCase();
+    public InventoryItemEntry(String name, @NotNull String count, int slot, int damage, boolean editable, boolean unique) {
+        super(name, slot);
+        this.count = count;
+        this.damage = damage;
+        this.editable = editable;
+        this.unique = unique;
     }
 
     @Nullable
@@ -48,11 +50,6 @@ public class InventoryItemEntry {
     @Nullable
     public Integer getDamage() {
         return damage;
-    }
-
-    @NotNull
-    public Integer getSlot() {
-        return slot;
     }
 
     @NotNull

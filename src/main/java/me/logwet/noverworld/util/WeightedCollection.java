@@ -6,6 +6,7 @@ import java.util.TreeMap;
 
 /**
  * @author Ross Paffett (https://gist.github.com/raws/1667807)
+ * Modified to minimise calls to Random.nextInt()
  */
 
 public class WeightedCollection<E> {
@@ -29,8 +30,12 @@ public class WeightedCollection<E> {
     }
 
     public E next() {
-        int value = random.nextInt(total) + 1; // Can also use floating-point weights
+        int value;
+        if (map.size() > 1) {
+            value = random.nextInt(total) + 1; // Can also use floating-point weights
+        } else {
+            value = total;
+        }
         return map.ceilingEntry(value).getValue();
     }
-
 }
