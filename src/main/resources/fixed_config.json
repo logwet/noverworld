@@ -1,8 +1,7 @@
 {
-  "spawnShiftRange": [
-    200,
-    250
-  ],
+  "spawnShiftRange": {
+    "200-250": 100
+  },
   "spawnYHeightDistribution": {
     "7-13": 90,
     "14-60": 10
