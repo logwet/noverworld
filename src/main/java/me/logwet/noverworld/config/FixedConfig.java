@@ -1,5 +1,6 @@
 package me.logwet.noverworld.config;
 
+import me.logwet.noverworld.util.RandomDistribution;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -7,20 +8,20 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FixedConfig {
-    private int[] spawnShiftRange;
+    private RandomDistribution spawnShiftRange;
 
-    private Map<String, Integer> spawnYHeightDistribution;
+    private RandomDistribution spawnYHeightDistribution;
 
     private Map<String, Float> playerAttributes;
 
     private List<InventoryItemEntry> inventory;
 
-    public int[] getSpawnShiftRange() {
+    public RandomDistribution getSpawnShiftRange() {
         return spawnShiftRange;
     }
 
     @NotNull
-    public Map<String, Integer> getSpawnYHeightDistribution() {
+    public RandomDistribution getSpawnYHeightDistribution() {
         return spawnYHeightDistribution;
     }
 
@@ -49,6 +50,4 @@ public class FixedConfig {
                 .filter(item -> !(item.isUnique() && item.isEditable()))
                 .collect(Collectors.toList());
     }
-
-
 }

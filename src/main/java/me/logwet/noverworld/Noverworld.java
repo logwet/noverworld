@@ -6,8 +6,7 @@ import com.mojang.brigadier.StringReader;
 import me.logwet.noverworld.config.*;
 import me.logwet.noverworld.mixin.common.HungerManagerAccessor;
 import me.logwet.noverworld.mixin.common.ServerPlayerEntityAccessor;
-import me.logwet.noverworld.config.ItemNotFoundException;
-import me.logwet.noverworld.util.WeightedCollection;
+import me.logwet.noverworld.util.RandomDistribution;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.criterion.Criteria;
@@ -45,7 +44,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class Noverworld {
     public static final String VERSION = FabricLoader.getInstance().getModContainer("noverworld").get().getMetadata().getVersion().getFriendlyString();
@@ -66,11 +64,10 @@ public class Noverworld {
     private static Set<UUID> initializedPlayers;
     private static MinecraftServer MS;
     private static Random randomInstance;
-    private static WeightedCollection<int[]> spawnYHeightSets;
     private static List<InventoryItemEntry> uniqueFixedConfigItems;
     private static List<InventoryItemEntry> nonUniqueFixedConfigItems;
-    private static int[] possibleSpawnShifts;
-    private static Map<String, Integer> spawnYHeightDistribution;
+    private static RandomDistribution spawnYHeightDistribution;
+    private static RandomDistribution spawnShiftRange;
     private static Map<String, Float> playerAttributes;
 
     private static float spawnYaw = 0;
@@ -170,11 +167,8 @@ public class Noverworld {
     private static void resetRandoms() {
         randomInstance = newRandomInstance();
 
-        spawnYHeightSets = new WeightedCollection<>(randomInstance);
-        spawnYHeightDistribution.forEach((rawRange, weight) -> {
-            String[] stringRange = rawRange.split("-");
-            spawnYHeightSets.add(weight, IntStream.range(Integer.parseInt(stringRange[0]), Integer.parseInt(stringRange[1])).toArray());
-        });
+        spawnYHeightDistribution.createDistribution(randomInstance);
+        spawnShiftRange.createDistribution(randomInstance);
 
         spawnYaw = getRandomAngle();
 
@@ -182,30 +176,22 @@ public class Noverworld {
         float spawnShiftLength;
 
         try {
-            spawnShiftLength = (float) possibleSpawnShifts[randomInstance.nextInt(possibleSpawnShifts.length)];
+            spawnShiftLength = (float) spawnShiftRange.getNext(randomInstance);
         } catch (Exception e) {
             spawnShiftLength = 0;
         }
 
         float spawnShiftAngleRadians = spawnShiftAngle * 0.017453292F;
 
-        int yHeight = getSpawnYHeight();
-
         BlockPos worldSpawn = getWorldSpawn();
 
         spawnPos = new BlockPos(
                 worldSpawn.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
-                yHeight,
+                spawnYHeightDistribution.getNext(randomInstance),
                 worldSpawn.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
         );
 
         log(Level.INFO, "Reset randoms using world seed");
-    }
-
-    @NotNull
-    private static Integer getSpawnYHeight() {
-        int[] heightSet = spawnYHeightSets.next();
-        return heightSet[randomInstance.nextInt(heightSet.length)];
     }
 
     @NotNull
@@ -224,9 +210,8 @@ public class Noverworld {
         uniqueFixedConfigItems = fixedConfig.getUniqueItems();
         nonUniqueFixedConfigItems = fixedConfig.getNonUniqueItems();
 
-        possibleSpawnShifts = IntStream.range(fixedConfig.getSpawnShiftRange()[0], fixedConfig.getSpawnShiftRange()[1]).toArray();
-
         spawnYHeightDistribution = fixedConfig.getSpawnYHeightDistribution();
+        spawnShiftRange = fixedConfig.getSpawnShiftRange();
 
         playerAttributes = fixedConfig.getPlayerAttributes();
 
