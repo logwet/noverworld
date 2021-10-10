@@ -183,12 +183,14 @@ public class Noverworld {
 
         float spawnShiftAngleRadians = spawnShiftAngle * 0.017453292F;
 
-        BlockPos worldSpawn = getWorldSpawn();
+        int yHeight = spawnYHeightDistribution.getNext(randomInstance);
+
+        BlockPos origin = getWorldSpawn();
 
         spawnPos = new BlockPos(
-                worldSpawn.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
-                spawnYHeightDistribution.getNext(randomInstance),
-                worldSpawn.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
+                origin.getX() - Math.round(spawnShiftLength * MathHelper.sin(spawnShiftAngleRadians)),
+                yHeight,
+                origin.getZ() + Math.round(spawnShiftLength * MathHelper.cos(spawnShiftAngleRadians))
         );
 
         log(Level.INFO, "Reset randoms using world seed");
