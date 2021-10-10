@@ -3,10 +3,13 @@ package me.logwet.noverworld.config;
 import org.jetbrains.annotations.NotNull;
 
 public class UserConfigInventoryItemEntry {
+    @NotNull
     protected String name;
-    protected int slot;
 
-    public UserConfigInventoryItemEntry(String name, int slot) {
+    @NotNull
+    protected Integer slot;
+
+    public UserConfigInventoryItemEntry(@NotNull String name, @NotNull Integer slot) {
         this.name = name;
         this.slot = slot;
     }
