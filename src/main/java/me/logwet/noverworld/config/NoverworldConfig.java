@@ -8,16 +8,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class NoverworldConfig {
-    private boolean f3Enabled = true;
+    @NotNull
+    private Boolean f3Enabled = true;
 
-    private boolean recipeBookEnabled = true;
+    @NotNull
+    private Boolean recipeBookEnabled = true;
 
+    @NotNull
     private List<UserConfigInventoryItemEntry> inventory;
 
-    public NoverworldConfig(List<UserConfigInventoryItemEntry> inventory) {
+    public NoverworldConfig(@NotNull List<UserConfigInventoryItemEntry> inventory) {
         this.inventory = inventory;
     }
 
+    @NotNull
     public static NoverworldConfig fromFixedConfigs(List<InventoryItemEntry> inventory) {
         return new NoverworldConfig(inventory
                 .stream()

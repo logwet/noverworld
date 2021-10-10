@@ -13,7 +13,6 @@
     "client.ClientPlayNetworkHandlerMixin",
     "client.DebugHudMixin",
     "client.IntegratedServerMixin",
-    "client.MinecraftClientAccessor",
     "client.MinecraftClientMixin"
   ],
   "server": [
