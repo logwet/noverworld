@@ -72,14 +72,14 @@ seed will yield the same yaw and targeted y height. Therefore, the mod is suitab
 ## Creating your own custom inventory
 
 ```json
-"spawnShiftRange": [
-  50,
-  150
-]
+"spawnShiftRange": {
+  "50-100": 60,
+  "101-250": 40
+}
 ```
 
-This determines the distance the player's spawn will be shifted from the world spawn (radius). It will be randomly
-chosen from between the lower and upper bound.
+This determines the distance the player's spawn will be shifted from the world spawn (radius). The key is a range in the format "min-max" and
+the value is the relative weight that should be given to that range.
 
 ```json
 "spawnYHeightDistribution": {
@@ -147,6 +147,7 @@ If you have a problem with the mod, a question or experience a crash follow thes
   - You can't easily do so. The three Noverworld categories have fixed inventories, you can change the slots your items are in but not their type, durability or count.
   - If you __really__ want to change the items, you can do so by editing `fixed_config.json` and recompiling the mod, but beware that this will make your runs unverifiable for the leaderboards.
     - See the [Creating your own custom inventory](#creating-your-own-custom-inventory) section for more information.
+    - If you don't have a java and fabric development environment, I believe you can still edit the file by renaming the `.jar` to a zip, editing the file then rezipping and renaming to `.jar`.
 - How do I reset my hotbar to the default included in the mod?
   - Delete the config file at `.minecraft/config/noverworld-X.X.X.json`. When you create a new world or reload the game the defaults will be applied.
 - I updated the mod and my inventory slot config has been reset, what gives?
