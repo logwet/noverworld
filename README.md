@@ -129,10 +129,10 @@ This determines the player's health, hunger and saturation.
 
 If you have a problem with the mod, a question or experience a crash follow these steps:
 1. Check the README to see if there's any relevant info on there, particularly the FAQ section.
-2. Check the GitHub Issues (including closed issues).
+2. If you have a question, ask it on the GitHub Discussions Q&A section [here](https://github.com/logwet/noverworld/discussions/categories/q-a).
 3. Check the GitHub Releases to see if a newer build has been released that addresses your problem.
 4. If you're experiencing a crash, make a GitHub issue and include the crash report.
-5. If none of the above steps are helpful, DM me on discord (I'm in HBG Hub, Javacord etc. under this name).
+5. If none of the above steps are helpful, DM me on discord (I'm in HBG Hub, Javacord etc. under this name). I don't mind being pinged for help requests either.
 
 ## FAQ
 
@@ -159,7 +159,7 @@ If you have a problem with the mod, a question or experience a crash follow thes
 - I don't book craft so I don't want the recipe book to be automatically opened by default.
   - Set `recipeBookEnabled` to `false` in the config file. This won't automatically open the recipe book pane before you spawn.
 - I have a suggestion for improvement.
-  - Make a GitHub issue and include as much information as you can.
+  - Put it on the Github Discussions Idea section [here](https://github.com/logwet/noverworld/discussions/categories/ideas)
   - Or message me on Discord.
 - The mod is crashing while launching with `java.lang.reflect.InvocationTargetException`
   - Make sure you are running the release version of the mod ie. `noverworld-x.x.x.jar` instead of `noverworld-x-x-x-dev.jar`
