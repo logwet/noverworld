@@ -171,6 +171,7 @@ If you have a problem with the mod, a question or experience a crash follow thes
     - FastReset (doesn't save world)
     - AutoReset (automatically reset worlds w/o macro) ___note: some users have reported problems with this mod___
     - LazyDFU
+    - Chunk Mod (delay spawn chunk gen until after spawning). Tested with noverworld 2.3.0, may be compatible with older versions. Depending on your system the performance improvement from this can be quite dramatic eg. 4x faster loads.
     - Moonlight (threaded stronghold gen)
   - I will not support multi-threaded world gen such as C2ME. Perhaps sometime in the future as a separate branch.
 
