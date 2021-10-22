@@ -2,7 +2,6 @@ package me.logwet.noverworld.config;
 
 import me.logwet.noverworld.Noverworld;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.Level;
