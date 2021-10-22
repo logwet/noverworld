@@ -1,5 +1,7 @@
 # Noverworld
 
+[![Build and Release Artifacts](https://github.com/logwet/noverworld/actions/workflows/build.yml/badge.svg)](https://github.com/logwet/noverworld/actions/workflows/build.yml)
+
 - [Noverworld](#noverworld)
   * [About](#about)
   * [Creating your own custom inventory](#creating-your-own-custom-inventory)
