@@ -5,11 +5,6 @@
     "run": "master"
   },
   {
-    "java": 11,
-    "os": "ubuntu-latest",
-    "run": "master"
-  },
-  {
     "java": 16,
     "os": "ubuntu-latest",
     "run": "always"
