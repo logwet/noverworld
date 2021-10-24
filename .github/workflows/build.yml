@@ -43,7 +43,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: ${{ matrix.java }}
-          distribution: 'adopt'
+          distribution: 'temurin'
           cache: gradle
 
       - name: Make Gradle wrapper executable
@@ -81,12 +81,6 @@ jobs:
           path: './gradle.properties'
           property: 'base_version'
 
-      - name: Generate changelog
-        id: changelog
-        uses: metcalfc/changelog-generator@v1.0.0
-        with:
-          myToken: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Download artifacts
         uses: actions/download-artifact@v2
         with:
@@ -96,6 +90,13 @@ jobs:
       - name: Delete dev artifacts
         run: |
           find bin/ -name '*-dev.jar' -delete
+
+      - name: Generate changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v1.0.0
+        continue-on-error: true
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Make and upload release
         uses: softprops/action-gh-release@v1

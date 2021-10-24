@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.7-SNAPSHOT'
+	id 'fabric-loom' version '0.9-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -16,7 +16,7 @@ repositories {
 }
 
 loom {
-	accessWidener = file("src/main/resources/noverworld.accesswidener")
+	accessWidenerPath = file("src/main/resources/noverworld.accesswidener")
 }
 
 dependencies {
