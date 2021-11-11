@@ -4,9 +4,11 @@
   "package": "me.logwet.noverworld.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "common.EntityAccessor",
     "common.HungerManagerAccessor",
     "common.MinecraftServerMixin",
     "common.PlayerManagerMixin",
+    "common.RecipeBookAccessor",
     "common.ServerPlayerEntityAccessor"
   ],
   "client": [
