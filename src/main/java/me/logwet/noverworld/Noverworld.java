@@ -7,7 +7,9 @@ import me.logwet.noverworld.config.FixedConfig;
 import me.logwet.noverworld.config.InventoryItemEntry;
 import me.logwet.noverworld.config.MalformedConfigException;
 import me.logwet.noverworld.config.NoverworldConfig;
+import me.logwet.noverworld.mixin.common.EntityAccessor;
 import me.logwet.noverworld.mixin.common.HungerManagerAccessor;
+import me.logwet.noverworld.mixin.common.RecipeBookAccessor;
 import me.logwet.noverworld.mixin.common.ServerPlayerEntityAccessor;
 import me.logwet.noverworld.util.RandomDistribution;
 import net.fabricmc.api.EnvType;
@@ -19,6 +21,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Wearable;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.book.RecipeBookCategory;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -293,7 +296,7 @@ public class Noverworld {
                     }
 
                     if (!Objects.isNull(tags)) {
-                        itemStack.setTag((new StringNbtReader(new StringReader(tags))).parseCompoundTag());
+                        itemStack.setTag((new StringNbtReader(new StringReader(tags))).parseCompound());
                     }
 
                     if (!Objects.isNull(damage) && itemStack.isDamageable()) {
@@ -372,8 +375,9 @@ public class Noverworld {
 
     private static void openRecipeBook(ServerPlayerEntity serverPlayerEntity) {
         if (config.isRecipeBookEnabled()) {
-            serverPlayerEntity.getRecipeBook().setGuiOpen(true);
-            serverPlayerEntity.getRecipeBook().setFilteringCraftable(true);
+            ((RecipeBookAccessor) serverPlayerEntity.getRecipeBook()).getOptionsField().setGuiOpen(RecipeBookCategory.CRAFTING, true);
+            ((RecipeBookAccessor) serverPlayerEntity.getRecipeBook()).getOptionsField().setFilteringCraftable(RecipeBookCategory.CRAFTING, true);
+            serverPlayerEntity.getRecipeBook().sendInitRecipesPacket(serverPlayerEntity);
 
             playerLog(Level.INFO, "Opened recipe book", serverPlayerEntity);
         }
@@ -404,8 +408,8 @@ public class Noverworld {
 
         playerLog(Level.INFO, "Attemping spawn at " + spawnPos.toShortString() + " with yaw " + serverPlayerEntity.yaw, serverPlayerEntity);
 
-        serverPlayerEntity.changeDimension(getNether());
-        serverPlayerEntity.netherPortalCooldown = serverPlayerEntity.getDefaultNetherPortalCooldown();
+        serverPlayerEntity.moveToWorld(getNether());
+        ((EntityAccessor) serverPlayerEntity).setNetherPortalCooldown(serverPlayerEntity.getDefaultNetherPortalCooldown());
 
         serverPlayerEntity.sendMessage(new LiteralText(""), true);
 
@@ -413,7 +417,7 @@ public class Noverworld {
     }
 
     private static void setSpawnPoint(ServerPlayerEntity serverPlayerEntity) {
-        serverPlayerEntity.setSpawnPoint(serverPlayerEntity.world.getRegistryKey(), serverPlayerEntity.getBlockPos(), true, false);
+        serverPlayerEntity.setSpawnPoint(serverPlayerEntity.world.getRegistryKey(), serverPlayerEntity.getBlockPos(), 0.0F, true, false);
         playerLog(Level.INFO, "Set spawnpoint to portal", serverPlayerEntity);
     }
 

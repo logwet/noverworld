@@ -5,7 +5,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.options.Option;
+import net.minecraft.client.option.Option;
 import org.apache.logging.log4j.Level;
 
 @Environment(EnvType.CLIENT)
