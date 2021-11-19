@@ -87,9 +87,10 @@ jobs:
           name: Artifacts
           path: bin
 
-      - name: Delete dev artifacts
+      - name: Delete dev and sources artifacts
         run: |
           find bin/ -name '*-dev.jar' -delete
+          find bin/ -name '*-sources.jar' -delete
 
       - name: Generate changelog
         id: changelog
@@ -108,3 +109,21 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
 
             Make sure to read the [README](README.md) for instructions on how this mod works and how to use it.
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Setup JDK 16
+        uses: actions/setup-java@v2
+        with:
+          java-version: 16
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Publish artifacts
+        run: ./gradlew publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
