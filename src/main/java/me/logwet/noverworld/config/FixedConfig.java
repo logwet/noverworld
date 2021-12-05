@@ -20,6 +20,9 @@ public class FixedConfig {
     private Map<String, Float> playerAttributes;
 
     @NotNull
+    private RandomDistribution startingTime;
+
+    @NotNull
     private List<InventoryItemEntry> inventory;
 
     public FixedConfig(@NotNull RandomDistribution spawnShiftRange, @NotNull RandomDistribution spawnYHeightDistribution, @NotNull Map<String, Float> playerAttributes, @NotNull List<InventoryItemEntry> inventory) {
@@ -42,6 +45,11 @@ public class FixedConfig {
     @NotNull
     public Map<String, Float> getPlayerAttributes() {
         return playerAttributes;
+    }
+
+    @NotNull
+    public RandomDistribution getStartingTime() {
+        return startingTime;
     }
 
     @NotNull
