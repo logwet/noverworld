@@ -11,6 +11,9 @@
     "hunger": 20.0,
     "saturation": 0.0
   },
+  "startingTime": {
+    "3600-5400": 100
+  },
   "inventory": [
     {
       "name": "wooden_axe",
