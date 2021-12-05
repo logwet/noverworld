@@ -3,10 +3,5 @@
     "java": 16,
     "os": "ubuntu-latest",
     "run": "always"
-  },
-  {
-    "java": 17,
-    "os": "ubuntu-latest",
-    "run": "master"
   }
 ]
