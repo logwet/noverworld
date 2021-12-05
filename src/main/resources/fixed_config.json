@@ -12,6 +12,9 @@
     "hunger": 20.0,
     "saturation": 6.0
   },
+  "startingTime": {
+    "2400-3600": 100
+  },
   "inventory": [
     {
       "name": "stone_axe",
