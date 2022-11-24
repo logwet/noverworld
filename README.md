@@ -176,6 +176,8 @@ If you have a problem with the mod, a question or experience a crash follow thes
     - Chunk Mod (delay spawn chunk gen until after spawning). Tested with noverworld 2.3.0, may be compatible with older versions. Depending on your system the performance improvement from this can be quite dramatic eg. 4x faster loads.
     - Moonlight (threaded stronghold gen)
   - I will not support multi-threaded world gen such as C2ME. Perhaps sometime in the future as a separate branch.
+  - World Preview is not compatible
+  - Lazy Stronghold is not compatible
 
 Contributions are welcome. This mod is licensed under the GPL-3.0, meaning any forks/derivative works must also be open
 source and licensed under the GPL-3.0. If you fork the mod and publish the distribution (without the intention of
